@@ -1,5 +1,15 @@
 #!/bin/bash
-echo "Deploying to Google Cloud Run (austin-test-450819)..."
+
+if ! command -v gcloud &> /dev/null
+then
+    echo "❌ ERROR: gcloud CLI could not be found."
+    echo "Google Cloud Run deployment requires the Google Cloud SDK."
+    echo "Please install it from: https://cloud.google.com/sdk/docs/install"
+    echo "After installation, run 'gcloud auth login' and try this script again."
+    exit 1
+fi
+
+echo "🚀 Deploying to Google Cloud Run (austin-test-450819)..."
 
 gcloud run deploy guessnumber \
   --source . \
