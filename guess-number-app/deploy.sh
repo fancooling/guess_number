@@ -9,9 +9,16 @@ then
     exit 1
 fi
 
-# Check if Firebase config is set in environment.ts
+# Load .env file if it exists
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
+
+# Check if Firebase config is set via environment variables
 if [ -z "$FIREBASE_API_KEY" ] || [ -z "$FIREBASE_PROJECT_ID" ]; then
-    echo "⚠️  Firebase environment variables not set."
+    echo "❌ ERROR: Firebase environment variables not set."
     echo "Please set them before deploying:"
     echo "  export FIREBASE_API_KEY=your_api_key"
     echo "  export FIREBASE_PROJECT_ID=your_project_id"
@@ -19,9 +26,8 @@ if [ -z "$FIREBASE_API_KEY" ] || [ -z "$FIREBASE_PROJECT_ID" ]; then
     echo "  export FIREBASE_STORAGE_BUCKET=your_project.appspot.com"
     echo "  export FIREBASE_MESSAGING_SENDER_ID=your_sender_id"
     echo "  export FIREBASE_APP_ID=your_app_id"
-    echo ""
-    echo "Or edit src/app/environments/environment.ts directly"
-    echo ""
+    echo "  export FIREBASE_DB_NAME=(default)  # optional"
+    exit 1
 fi
 
 echo "🚀 Deploying to Google Cloud Run (austin-test-450819)..."
@@ -31,8 +37,7 @@ gcloud run deploy guessnumber \
   --project austin-test-450819 \
   --region us-west1 \
   --allow-unauthenticated \
-  --port 8080 \
-  --set-env-vars="FIREBASE_API_KEY=$FIREBASE_API_KEY,FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID,FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN,FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET,FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID,FIREBASE_APP_ID=$FIREBASE_APP_ID"
+  --port 8080
 
 echo ""
 echo "Deployment successful."

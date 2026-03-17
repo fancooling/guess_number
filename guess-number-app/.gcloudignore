@@ -1,0 +1,21 @@
+# Compiled output
+/dist
+/tmp
+/out-tsc
+
+# Node
+/node_modules
+
+# IDE
+.idea/
+.vscode/
+
+# Misc
+/.angular/cache
+/coverage
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Note: src/environments/ is NOT ignored here — it's generated at deploy time
