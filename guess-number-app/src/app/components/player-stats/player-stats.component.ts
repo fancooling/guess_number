@@ -23,7 +23,7 @@ import { LeaderboardEntry } from '../../models/player-stats';
             <div class="bg-gray-50 rounded-xl p-3">
               <div class="text-2xl font-black text-indigo-600">3</div>
               <div class="text-xs text-gray-500 mb-1">digits</div>
-              <div class="font-bold text-gray-800">{{ player.stats[3]?.wins || 0 }} wins</div>
+              <div class="font-bold text-gray-800">{{ player.stats[3].wins || 0 }} wins</div>
               <div class="text-xs text-gray-500">
                 Avg: {{ firestore.getAverageGuesses(player.stats, 3) || '-' }} guesses
               </div>
@@ -33,7 +33,7 @@ import { LeaderboardEntry } from '../../models/player-stats';
             <div class="bg-gray-50 rounded-xl p-3">
               <div class="text-2xl font-black text-indigo-600">4</div>
               <div class="text-xs text-gray-500 mb-1">digits</div>
-              <div class="font-bold text-gray-800">{{ player.stats[4]?.wins || 0 }} wins</div>
+              <div class="font-bold text-gray-800">{{ player.stats[4].wins || 0 }} wins</div>
               <div class="text-xs text-gray-500">
                 Avg: {{ firestore.getAverageGuesses(player.stats, 4) || '-' }} guesses
               </div>
@@ -43,7 +43,7 @@ import { LeaderboardEntry } from '../../models/player-stats';
             <div class="bg-gray-50 rounded-xl p-3">
               <div class="text-2xl font-black text-indigo-600">5</div>
               <div class="text-xs text-gray-500 mb-1">digits</div>
-              <div class="font-bold text-gray-800">{{ player.stats[5]?.wins || 0 }} wins</div>
+              <div class="font-bold text-gray-800">{{ player.stats[5].wins || 0 }} wins</div>
               <div class="text-xs text-gray-500">
                 Avg: {{ firestore.getAverageGuesses(player.stats, 5) || '-' }} guesses
               </div>
