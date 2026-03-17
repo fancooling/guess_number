@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { FirestoreService } from './firestore.service';
+import { AuthService } from './auth.service';
 
 export type GameState = 'menu' | 'playing' | 'gameover';
 
@@ -12,6 +14,9 @@ export interface GuessResult {
     providedIn: 'root'
 })
 export class GameService {
+    private firestore = inject(FirestoreService);
+    private auth = inject(AuthService);
+
     state = signal<GameState>('menu');
     targetNumber = signal<string>('');
     length = signal<number>(4);
@@ -67,6 +72,25 @@ export class GameService {
 
         if (greenLights === this.length()) {
             this.state.set('gameover');
+            this.saveGameResult();
+        }
+    }
+
+    private async saveGameResult(): Promise<void> {
+        const userId = this.auth.getUserId();
+        console.log('Saving game result - userId:', userId, 'isLoggedIn:', this.auth.isLoggedIn());
+        if (userId) {
+            try {
+                await this.firestore.saveGameResult(
+                    userId,
+                    this.auth.displayName(),
+                    this.length(),
+                    this.history().length
+                );
+                console.log('Game result saved successfully');
+            } catch (error) {
+                console.error('Error saving game result:', error);
+            }
         }
     }
 
