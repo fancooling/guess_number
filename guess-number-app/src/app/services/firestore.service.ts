@@ -49,11 +49,55 @@ export class FirestoreService {
         uid: userId,
         displayName,
         stats,
-        totalWins: 1
+        totalWins: 1,
+        roomWins: 0
       });
     }
 
     // Refresh leaderboard
+    await this.loadLeaderboard();
+  }
+
+  async saveRoomWin(userId: string, displayName: string, length: number, guessCount: number): Promise<void> {
+    const playerRef = doc(this.playersCollection, userId);
+    const playerDoc = await getDoc(playerRef);
+
+    if (playerDoc.exists()) {
+      const data = playerDoc.data();
+      const stats = data.stats || { 3: { wins: 0, totalGuesses: 0 }, 4: { wins: 0, totalGuesses: 0 }, 5: { wins: 0, totalGuesses: 0 } };
+
+      if (!stats[length]) {
+        stats[length] = { wins: 0, totalGuesses: 0 };
+      }
+      stats[length].wins += 1;
+      stats[length].totalGuesses += guessCount;
+
+      const totalWins = Object.values(stats).reduce((sum, s) => sum + s.wins, 0);
+      const roomWins = (data.roomWins || 0) + 1;
+
+      await updateDoc(playerRef, {
+        stats,
+        totalWins,
+        roomWins,
+        displayName
+      });
+    } else {
+      const stats: PlayerStats['stats'] = {
+        3: { wins: 0, totalGuesses: 0 },
+        4: { wins: 0, totalGuesses: 0 },
+        5: { wins: 0, totalGuesses: 0 }
+      };
+      stats[length] = { wins: 1, totalGuesses: guessCount };
+
+      await setDoc(playerRef, {
+        uid: userId,
+        displayName,
+        stats,
+        totalWins: 1,
+        roomWins: 1
+      });
+    }
+
     await this.loadLeaderboard();
   }
 
@@ -71,6 +115,7 @@ export class FirestoreService {
           uid: data.uid,
           displayName: data.displayName || 'Anonymous',
           totalWins: data.totalWins || 0,
+          roomWins: data.roomWins || 0,
           stats: data.stats || { 3: { wins: 0, totalGuesses: 0 }, 4: { wins: 0, totalGuesses: 0 }, 5: { wins: 0, totalGuesses: 0 } }
         };
       });
@@ -92,6 +137,7 @@ export class FirestoreService {
         uid: data.uid,
         displayName: data.displayName || 'Anonymous',
         totalWins: data.totalWins || 0,
+        roomWins: data.roomWins || 0,
         stats: data.stats || { 3: { wins: 0, totalGuesses: 0 }, 4: { wins: 0, totalGuesses: 0 }, 5: { wins: 0, totalGuesses: 0 } }
       };
     }

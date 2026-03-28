@@ -1,6 +1,19 @@
 # GuessNumberApp
 
-A cross-platform number guessing game built with Angular and Capacitor.
+A cross-platform number guessing game built with Angular and Capacitor. Supports single-player and multiplayer game rooms with real-time turn-based gameplay.
+
+## Features
+
+- **Single Player** - Guess a 3, 4, or 5 digit number with green/yellow light feedback
+- **Google Auth & Guest Mode** - Sign in with Google or play as a guest
+- **Multiplayer Game Rooms** - Create or join rooms (1-3 players), take turns guessing in real-time
+  - Round-robin turns with 60-second timer per turn
+  - Real-time updates via Firestore listeners
+  - Keep-alive mechanism (auto-removes inactive players after 2 minutes)
+  - Room creator controls game start and can restart after each round
+- **Leaderboard** - Rankings by total wins, including room wins
+- **Player Stats** - Per-digit-length win counts and average guesses
+- **Cross-Platform** - Runs on web, Android (Capacitor), and iOS (Capacitor)
 
 ## Firebase Setup
 
@@ -23,7 +36,31 @@ firebase login
 4. Select **Production mode** (or Test mode for development)
 5. Click "Enable"
 
-### 3. Enable Authentication
+### 3. Firestore Security Rules
+
+In **Firestore Database** → **Rules**, set:
+
+```
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /players/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /rooms/{roomId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+      allow update: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+      allow delete: if request.auth != null && resource.data.creatorId == request.auth.uid;
+    }
+  }
+}
+```
+
+### 4. Enable Authentication
 
 1. Go to **Build** → **Authentication**
 2. Click "Get started"
@@ -31,14 +68,14 @@ firebase login
    - **Anonymous** - for Guest mode
    - **Google** - for Google Sign-In
 
-### 4. Get Firebase Config
+### 5. Get Firebase Config
 
-1. Go to Project Settings (gear icon ⚙️)
+1. Go to Project Settings (gear icon)
 2. Scroll to "Your apps" → click web icon `</>`
 3. Register app: name = `guess-number-app`
 4. Copy the `firebaseConfig` object
 
-### 5. Update Firebase Config
+### 6. Update Firebase Config
 
 Edit `src/app/environments/environment.ts` with your Firebase config:
 
@@ -51,7 +88,8 @@ export const environment = {
     projectId: "YOUR_PROJECT_ID",
     storageBucket: "YOUR_PROJECT.appspot.com",
     messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    appId: "YOUR_APP_ID",
+    dbName: "YOUR_DB_NAME"
   }
 };
 ```
@@ -73,11 +111,22 @@ FIREBASE_PROJECT_ID=your_project_id
 FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 FIREBASE_APP_ID=your_app_id
+FIREBASE_DB_NAME=your_db_name
 ```
 
 Note: `.env` is already in `.gitignore` - do NOT commit it.
 
+## Development
+
+```bash
+npm start
+```
+
+Opens dev server at `http://localhost:4200/`. To test multiplayer, open two browser tabs and sign in with Google in both.
+
 ## Deployment to Cloud Run
+
+The deploy script builds the Docker image via Cloud Build (passing Firebase config as build args) and deploys to Cloud Run.
 
 ### Option 1: Set environment variables before deploy
 
@@ -88,54 +137,58 @@ export FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 export FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 export FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 export FIREBASE_APP_ID=your_app_id
+export FIREBASE_DB_NAME=your_db_name
 
 ./deploy.sh
 ```
 
-### Option 2: Edit environment.ts directly
+### Option 2: Use a .env file
+
+Create a `.env` file with the values above. The deploy script sources it automatically.
+
+### Option 3: Edit environment.ts directly
 
 Edit `src/app/environments/environment.ts` with production values before deploying.
 
-## Syncing to Other Machines
+## Project Structure
 
-1. **Use a password manager** (1Password, Bitwarden) to share the Firebase config values
-
-2. **Create a shared secrets file** (not in git):
-   ```bash
-   # On Machine A - export your vars to a file (manually, not in git)
-   # Share this file securely via password manager, USB, etc.
-
-   # On Machine B - source the file:
-   source ~/path/to/secrets.env
-   ./deploy.sh
-   ```
-
-3. **Use Cloud Run secrets** (most secure):
-   - Go to Google Cloud Console → Secret Manager
-   - Create secrets for each Firebase config value
-   - Grant Cloud Run service account access to secrets
-   - Reference secrets in deploy.sh
-
-## Development
-
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+```
+src/app/
+├── components/
+│   ├── leader-board/        # Leaderboard modal
+│   ├── player-stats/        # Player stats detail modal
+│   ├── room-list/           # Room browser (create/join rooms)
+│   ├── room-lobby/          # Waiting room before game starts
+│   └── room-game/           # Multiplayer game view
+├── models/
+│   ├── player-stats.ts      # Player/leaderboard interfaces
+│   └── room.ts              # Room/game state interfaces
+├── services/
+│   ├── auth.service.ts      # Firebase Auth (Google + Guest)
+│   ├── firestore.service.ts # Player stats & leaderboard CRUD
+│   ├── game.service.ts      # Single-player game logic
+│   └── room.service.ts      # Room CRUD, real-time sync, keep-alive, turn timer
+├── utils/
+│   └── guess-evaluator.ts   # Shared guess evaluation logic
+├── app.component.ts/html    # Root component
+├── app.config.ts            # Angular + Firebase providers
+└── firebase.config.ts       # Firebase initialization
+```
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```bash
+ng build
+```
+
+Build artifacts are stored in the `dist/` directory.
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+```bash
+ng test
+```
 
 ## Further help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+To get more help on the Angular CLI use `ng help` or check the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

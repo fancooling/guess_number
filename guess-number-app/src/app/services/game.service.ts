@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { FirestoreService } from './firestore.service';
 import { AuthService } from './auth.service';
+import { evaluateGuess } from '../utils/guess-evaluator';
 
 export type GameState = 'menu' | 'playing' | 'gameover';
 
@@ -44,28 +45,7 @@ export class GameService {
         if (guess.length !== this.length() || this.state() !== 'playing') return;
 
         const target = this.targetNumber();
-        let positionsRight = 0;
-        let numbersRight = 0;
-
-        const targetCounts = new Map<string, number>();
-        const guessCounts = new Map<string, number>();
-
-        for (let i = 0; i < guess.length; i++) {
-            if (guess[i] === target[i]) {
-                positionsRight++;
-            }
-            targetCounts.set(target[i], (targetCounts.get(target[i]) || 0) + 1);
-            guessCounts.set(guess[i], (guessCounts.get(guess[i]) || 0) + 1);
-        }
-
-        for (const [char, count] of guessCounts.entries()) {
-            if (targetCounts.has(char)) {
-                numbersRight += Math.min(count, targetCounts.get(char)!);
-            }
-        }
-
-        const greenLights = positionsRight;
-        const yellowLights = numbersRight - positionsRight;
+        const { greenLights, yellowLights } = evaluateGuess(guess, target);
 
         const result: GuessResult = { guess, greenLights, yellowLights };
         this.history.update(h => [result, ...h]);

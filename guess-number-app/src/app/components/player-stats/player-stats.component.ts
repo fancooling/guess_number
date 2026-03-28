@@ -13,7 +13,7 @@ import { LeaderboardEntry } from '../../models/player-stats';
         <!-- Header -->
         <div class="bg-indigo-600 text-white p-4">
           <h2 class="text-lg font-bold text-center">{{ player.displayName }}</h2>
-          <p class="text-indigo-200 text-center text-sm">{{ player.totalWins }} total wins</p>
+          <p class="text-indigo-200 text-center text-sm">{{ player.totalWins }} total wins<span *ngIf="player.roomWins > 0"> &middot; {{ player.roomWins }} room wins</span></p>
         </div>
 
         <!-- Stats -->

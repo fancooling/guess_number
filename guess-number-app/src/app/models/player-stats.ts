@@ -10,12 +10,14 @@ export interface PlayerStats {
     [key: number]: LengthStats;
   };
   totalWins: number;
+  roomWins: number;
 }
 
 export interface LeaderboardEntry {
   uid: string;
   displayName: string;
   totalWins: number;
+  roomWins: number;
   stats: {
     [key: number]: LengthStats;
   };

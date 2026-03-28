@@ -1,6 +1,14 @@
 <div
-  class="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 text-gray-800 font-sans flex items-center justify-center p-4">
-  <div
+  class="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 text-gray-800 font-sans flex flex-col items-center justify-center p-4">
+
+  <!-- Room Lobby (when in a room waiting) -->
+  <app-room-lobby *ngIf="roomService.isInRoom() && roomService.currentRoom()?.status === 'waiting'"></app-room-lobby>
+
+  <!-- Room Game (when in a room playing/finished) -->
+  <app-room-game *ngIf="roomService.isInRoom() && (roomService.currentRoom()?.status === 'playing' || roomService.currentRoom()?.status === 'finished')"></app-room-game>
+
+  <!-- Solo Game (when NOT in a room) -->
+  <div *ngIf="!roomService.isInRoom()"
     class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-300 transform border border-white/50">
 
     <!-- Header -->
@@ -186,6 +194,11 @@
 
       </div>
     </div>
+  </div>
+
+  <!-- Room List (for authenticated non-guest users, when not in a room) -->
+  <div *ngIf="!roomService.isInRoom() && auth.authState() === 'authenticated'" class="max-w-md w-full">
+    <app-room-list></app-room-list>
   </div>
 </div>
 

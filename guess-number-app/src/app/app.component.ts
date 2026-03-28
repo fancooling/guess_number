@@ -3,20 +3,25 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameService } from './services/game.service';
 import { AuthService } from './services/auth.service';
+import { RoomService } from './services/room.service';
 import { LeaderBoardComponent } from './components/leader-board/leader-board.component';
 import { PlayerStatsComponent } from './components/player-stats/player-stats.component';
+import { RoomListComponent } from './components/room-list/room-list.component';
+import { RoomLobbyComponent } from './components/room-lobby/room-lobby.component';
+import { RoomGameComponent } from './components/room-game/room-game.component';
 import { LeaderboardEntry } from './models/player-stats';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, LeaderBoardComponent, PlayerStatsComponent],
+  imports: [CommonModule, FormsModule, LeaderBoardComponent, PlayerStatsComponent, RoomListComponent, RoomLobbyComponent, RoomGameComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
   game = inject(GameService);
   auth = inject(AuthService);
+  roomService = inject(RoomService);
 
   lengthInput = signal(4);
   guessInput = signal('');
