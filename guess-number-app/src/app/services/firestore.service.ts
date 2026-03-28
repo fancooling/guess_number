@@ -1,13 +1,13 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { Firestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, query, orderBy, limit, CollectionReference } from '@angular/fire/firestore';
+import { Injectable, signal } from '@angular/core';
+import { collection, doc, setDoc, getDoc, getDocs, updateDoc, query, orderBy, limit, CollectionReference } from 'firebase/firestore';
+import { db } from '../firebase.config';
 import { PlayerStats, LeaderboardEntry } from '../models/player-stats';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FirestoreService {
-  private firestore = inject(Firestore);
-  private playersCollection = collection(this.firestore, 'players') as CollectionReference<PlayerStats>;
+  private playersCollection = collection(db, 'players') as CollectionReference<PlayerStats>;
 
   // Cache for leaderboard
   private _leaderboard = signal<LeaderboardEntry[]>([]);

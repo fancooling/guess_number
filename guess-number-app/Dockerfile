@@ -1,9 +1,9 @@
 # Stage 1: Build Phase
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 

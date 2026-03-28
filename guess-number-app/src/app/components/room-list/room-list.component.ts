@@ -4,10 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { RoomService } from '../../services/room.service';
 
 @Component({
-  selector: 'app-room-list',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
+    selector: 'app-room-list',
+    imports: [CommonModule, FormsModule],
+    template: `
     <div class="mt-6 bg-white rounded-3xl shadow-xl border border-white/50 overflow-hidden">
       <div class="bg-indigo-600 text-white p-4 flex items-center justify-between">
         <h2 class="text-lg font-bold flex items-center gap-2">

@@ -16,18 +16,16 @@ if [ -f .env ]; then
     set +a
 fi
 
-# Check if Firebase config is set via environment variables
+# Check if Firebase config is available (either via env vars or environment.ts)
+ENV_TS="src/environments/environment.ts"
 if [ -z "$FIREBASE_API_KEY" ] || [ -z "$FIREBASE_PROJECT_ID" ]; then
-    echo "❌ ERROR: Firebase environment variables not set."
-    echo "Please set them before deploying:"
-    echo "  export FIREBASE_API_KEY=your_api_key"
-    echo "  export FIREBASE_PROJECT_ID=your_project_id"
-    echo "  export FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com"
-    echo "  export FIREBASE_STORAGE_BUCKET=your_project.appspot.com"
-    echo "  export FIREBASE_MESSAGING_SENDER_ID=your_sender_id"
-    echo "  export FIREBASE_APP_ID=your_app_id"
-    echo "  export FIREBASE_DB_NAME=(default)  # optional"
-    exit 1
+    if [ -f "$ENV_TS" ] && grep -q "apiKey" "$ENV_TS"; then
+        echo "ℹ️  Using Firebase config from $ENV_TS"
+    else
+        echo "❌ ERROR: Firebase config not found."
+        echo "Either set environment variables or edit $ENV_TS"
+        exit 1
+    fi
 fi
 
 PROJECT_ID="austin-test-450819"
@@ -37,18 +35,23 @@ IMAGE="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
 
 echo "🚀 Deploying to Google Cloud Run (${PROJECT_ID})..."
 
-# Build the Docker image with Firebase config as build args
+# Build the Docker image, passing Firebase env vars as build args if set
 echo "📦 Building Docker image..."
+BUILD_ARGS=""
+if [ -n "$FIREBASE_API_KEY" ]; then
+    BUILD_ARGS="$BUILD_ARGS --build-arg FIREBASE_API_KEY=${FIREBASE_API_KEY}"
+    BUILD_ARGS="$BUILD_ARGS --build-arg FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}"
+    BUILD_ARGS="$BUILD_ARGS --build-arg FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}"
+    BUILD_ARGS="$BUILD_ARGS --build-arg FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}"
+    BUILD_ARGS="$BUILD_ARGS --build-arg FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID}"
+    BUILD_ARGS="$BUILD_ARGS --build-arg FIREBASE_APP_ID=${FIREBASE_APP_ID}"
+    BUILD_ARGS="$BUILD_ARGS --build-arg FIREBASE_DB_NAME=${FIREBASE_DB_NAME:-(default)}"
+fi
+
 gcloud builds submit \
   --project "$PROJECT_ID" \
   --tag "$IMAGE" \
-  --build-arg "FIREBASE_API_KEY=${FIREBASE_API_KEY}" \
-  --build-arg "FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}" \
-  --build-arg "FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}" \
-  --build-arg "FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}" \
-  --build-arg "FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID}" \
-  --build-arg "FIREBASE_APP_ID=${FIREBASE_APP_ID}" \
-  --build-arg "FIREBASE_DB_NAME=${FIREBASE_DB_NAME:-(default)}"
+  $BUILD_ARGS
 
 if [ $? -ne 0 ]; then
     echo "❌ ERROR: Docker image build failed."

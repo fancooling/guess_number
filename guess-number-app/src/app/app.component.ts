@@ -12,11 +12,10 @@ import { RoomGameComponent } from './components/room-game/room-game.component';
 import { LeaderboardEntry } from './models/player-stats';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, FormsModule, LeaderBoardComponent, PlayerStatsComponent, RoomListComponent, RoomLobbyComponent, RoomGameComponent],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    imports: [CommonModule, FormsModule, LeaderBoardComponent, PlayerStatsComponent, RoomListComponent, RoomLobbyComponent, RoomGameComponent],
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
 })
 export class AppComponent {
   game = inject(GameService);

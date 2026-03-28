@@ -5,10 +5,9 @@ import { RoomService } from '../../services/room.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
-  selector: 'app-room-game',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
+    selector: 'app-room-game',
+    imports: [CommonModule, FormsModule],
+    template: `
     <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-white/50">
       <!-- Header -->
       <div class="bg-indigo-600 text-white p-4 text-center relative">

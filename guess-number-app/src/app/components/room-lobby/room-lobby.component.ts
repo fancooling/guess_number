@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RoomService } from '../../services/room.service';
 
 @Component({
-  selector: 'app-room-lobby',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-room-lobby',
+    imports: [CommonModule],
+    template: `
     <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-white/50">
       <!-- Header -->
       <div class="bg-indigo-600 text-white p-6 text-center">

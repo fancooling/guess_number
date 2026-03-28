@@ -2,7 +2,18 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-const dir = path.join(__dirname, '..', 'src', 'app', 'environments');
+const dir = path.join(__dirname, '..', 'src', 'environments');
+const filePath = path.join(dir, 'environment.ts');
+
+// Skip generation if no env vars are set and environment.ts already exists with real values
+if (!process.env.FIREBASE_API_KEY && fs.existsSync(filePath)) {
+  const existing = fs.readFileSync(filePath, 'utf8');
+  if (existing.includes('apiKey') && !existing.includes("apiKey: ''")) {
+    console.log('No env vars set, keeping existing environment.ts');
+    process.exit(0);
+  }
+}
+
 fs.mkdirSync(dir, { recursive: true });
 
 const content = `export const environment = {
@@ -18,5 +29,5 @@ const content = `export const environment = {
 };
 `;
 
-fs.writeFileSync(path.join(dir, 'environment.ts'), content);
+fs.writeFileSync(filePath, content);
 console.log('Generated src/app/environments/environment.ts from .env');

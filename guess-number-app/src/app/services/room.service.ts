@@ -1,9 +1,11 @@
 import { Injectable, inject, signal, computed, OnDestroy, NgZone } from '@angular/core';
 import {
-  Firestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc,
+  collection, doc, setDoc, getDoc, updateDoc, deleteDoc,
   query, where, onSnapshot, Timestamp, runTransaction,
-  CollectionReference, Unsubscribe, Transaction, DocumentSnapshot
-} from '@angular/fire/firestore';
+  CollectionReference, Transaction, DocumentSnapshot
+} from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
+import { db } from '../firebase.config';
 import { AuthService } from './auth.service';
 import { FirestoreService } from './firestore.service';
 import { Room, RoomPlayer, RoomGuessResult, RoomGameState } from '../models/room';
@@ -13,12 +15,11 @@ import { evaluateGuess } from '../utils/guess-evaluator';
   providedIn: 'root'
 })
 export class RoomService implements OnDestroy {
-  private firestore = inject(Firestore);
   private auth = inject(AuthService);
   private firestoreService = inject(FirestoreService);
   private ngZone = inject(NgZone);
 
-  private roomsCollection = collection(this.firestore, 'rooms') as CollectionReference;
+  private roomsCollection = collection(db, 'rooms') as CollectionReference;
 
   // Signals
   private _availableRooms = signal<Room[]>([]);
@@ -150,7 +151,7 @@ export class RoomService implements OnDestroy {
 
     const roomRef = doc(this.roomsCollection, roomId);
 
-    await runTransaction(this.firestore, async (transaction: Transaction) => {
+    await runTransaction(db, async (transaction: Transaction) => {
       const roomDoc = await transaction.get(roomRef);
       if (!roomDoc.exists()) throw new Error('Room does not exist');
 
@@ -192,7 +193,7 @@ export class RoomService implements OnDestroy {
       // Remove player from room
       const roomRef = doc(this.roomsCollection, room.id);
       try {
-        await runTransaction(this.firestore, async (transaction: Transaction) => {
+        await runTransaction(db, async (transaction: Transaction) => {
           const roomDoc = await transaction.get(roomRef);
           if (!roomDoc.exists()) return;
 
@@ -265,7 +266,7 @@ export class RoomService implements OnDestroy {
 
     const roomRef = doc(this.roomsCollection, room.id);
 
-    await runTransaction(this.firestore, async (transaction: Transaction) => {
+    await runTransaction(db, async (transaction: Transaction) => {
       const roomDoc = await transaction.get(roomRef);
       if (!roomDoc.exists()) return;
 
@@ -400,7 +401,7 @@ export class RoomService implements OnDestroy {
 
     const roomRef = doc(this.roomsCollection, room.id);
     try {
-      await runTransaction(this.firestore, async (transaction: Transaction) => {
+      await runTransaction(db, async (transaction: Transaction) => {
         const roomDoc = await transaction.get(roomRef);
         if (!roomDoc.exists()) return;
 
@@ -453,7 +454,7 @@ export class RoomService implements OnDestroy {
 
     const roomRef = doc(this.roomsCollection, room.id);
     try {
-      await runTransaction(this.firestore, async (transaction: Transaction) => {
+      await runTransaction(db, async (transaction: Transaction) => {
         const roomDoc = await transaction.get(roomRef);
         if (!roomDoc.exists()) return;
 
@@ -531,7 +532,7 @@ export class RoomService implements OnDestroy {
     // Remove stale players
     const roomRef = doc(this.roomsCollection, room.id);
     try {
-      await runTransaction(this.firestore, async (transaction: Transaction) => {
+      await runTransaction(db, async (transaction: Transaction) => {
         const roomDoc = await transaction.get(roomRef);
         if (!roomDoc.exists()) return;
 

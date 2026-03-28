@@ -4,10 +4,9 @@ import { FirestoreService } from '../../services/firestore.service';
 import { LeaderboardEntry } from '../../models/player-stats';
 
 @Component({
-  selector: 'app-player-stats',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-player-stats',
+    imports: [CommonModule],
+    template: `
     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (click)="close.emit()">
       <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
         <!-- Header -->
