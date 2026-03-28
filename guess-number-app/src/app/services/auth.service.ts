@@ -1,5 +1,6 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { Auth, signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, user, User } from '@angular/fire/auth';
+import { Injectable, signal } from '@angular/core';
+import { signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '../firebase.config';
 
 export type AuthState = 'loading' | 'guest' | 'authenticated';
 
@@ -7,11 +8,6 @@ export type AuthState = 'loading' | 'guest' | 'authenticated';
   providedIn: 'root'
 })
 export class AuthService {
-  private auth = inject(Auth);
-
-  // Use Firebase Auth's user observable
-  firebaseUser = user(this.auth);
-
   // Local user state
   private _user = signal<User | null>(null);
   private _authState = signal<AuthState>('loading');
@@ -21,9 +17,15 @@ export class AuthService {
   displayName = this._displayName.asReadonly();
   user = this._user.asReadonly();
 
+  // Expose as observable-like for room service subscription
+  firebaseUser = {
+    subscribe: (callback: (user: User | null) => void) => {
+      return onAuthStateChanged(auth, callback);
+    }
+  };
+
   constructor() {
-    // Listen to auth state changes
-    this.firebaseUser.subscribe((user) => {
+    onAuthStateChanged(auth, (user) => {
       this._user.set(user);
       if (user) {
         this._authState.set(user.isAnonymous ? 'guest' : 'authenticated');
@@ -37,15 +39,15 @@ export class AuthService {
 
   async signInWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(this.auth, provider);
+    await signInWithPopup(auth, provider);
   }
 
   async signInAsGuest(): Promise<void> {
-    await signInAnonymously(this.auth);
+    await signInAnonymously(auth);
   }
 
   async signOut(): Promise<void> {
-    await signOut(this.auth);
+    await signOut(auth);
   }
 
   isLoggedIn(): boolean {
