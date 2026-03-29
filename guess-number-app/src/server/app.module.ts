@@ -11,7 +11,7 @@ import { RoomModule } from './room/room.module';
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-      exclude: ['/api/(.*)'],
+      exclude: ['/api/{*path}'],
     }),
     RedisModule,
     AuthModule,

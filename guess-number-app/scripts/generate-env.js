@@ -6,6 +6,7 @@ const envFile = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, '..', '..', 'env', '.prod.env')
   : path.join(__dirname, '..', '..', 'env', '.dev.env');
 
+// In Docker, env vars are passed directly; env file may not exist
 if (fs.existsSync(envFile)) {
   const lines = fs.readFileSync(envFile, 'utf8').split('\n');
   for (const line of lines) {
