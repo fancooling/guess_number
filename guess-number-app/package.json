@@ -52,6 +52,11 @@
     "tslib": "^2.3.0",
     "zone.js": "~0.15.1"
   },
+  "overrides": {
+    "htmlparser2": {
+      "entities": "^6.0.0"
+    }
+  },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.23",
     "@angular/cli": "^19.2.23",
