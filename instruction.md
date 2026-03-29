@@ -43,24 +43,41 @@
 *   每次游戏结束后，玩家可以选择退出，或继续。房间创建者可以选择启动游戏。
 *   房间创建者退出房间是，房间关闭并删除。
 *   在房间获胜的次数计入该玩家成功通关次数，加入Leader board。同时Leader board统计玩家在所有房间中的获胜次数，单独显示。
+*   玩家如加入房间，游戏网页需定期通知服务器，Keep alive。玩家如关闭网页，自动通知服务器断开。或服务器超过2分钟没有收到玩家Keep alive信号，则断开连接，玩家自动退出房间。
 
 
 # AI 任务
-
 编写上述网页游戏，要求如下：
 *   界面简洁，易于使用
 *   代码清晰，易于维护
 *   游戏逻辑正确，符合上述规则
 *   游戏可以在浏览器和手机上运行
-*   游戏前端用Angular， typescript编写。因为逻辑简单，不需要后端
+*   游戏前端用Angular， typescript编写。后端用Node.js + NestJS + typescript
 *   在Angular基础上，包装成Android和IOS应用
-*   使用Firestore数据库，运行在Google Cloud Run
-*   玩家如加入房间，游戏网页需定期通知服务器，Keep alive。玩家如关闭网页，自动通知服务器断开。或服务器超过2分钟没有收到玩家Keep alive信号，则断开连接，玩家自动退出房间。
-
+*   使用Redis数据库 + AOF
+*   使用Nginx作为reverse proxy
 
 # 发布
-1. Web游戏运行在Google Cloud, Cloud Run上。Cloud ID: austin-test-450819。域名guessnumber.flamebots.org
-2. Android应用发布在Google Play上
-3. IOS应用暂时不发布，可以本地运行
+*   使用Docker compose发布，创建三个容器：web app包括前端和后端，redis, Nginx。
+    *   redis用AOF保存数据。
+*   整个系统运行在Public VPS, 域名guessnumber.flamebots.org
+*   Android应用发布在Google Play上
+*   IOS应用暂时不发布，可以本地运行
+*   文件结构
+    ~/code/guess_number/: 整个项目根目录
+    |- guess-number-app/: Web app代码
+    |  |- src/: 源代码
+    |  |  |- app/: Angular代码
+    |  |  |- server/: Node.js代码
+    |  |  |- common/: 共享typescript代码
+    |  |  |- android/: Android应用代码
+    |  |  |- ios/: IOS应用代码
+    |- deploy/: 部署文件   
+    |  |- docker-compose.yml, deploy.sh
+    |- config/: 各种需要的configuration文件，比如nginx.conf等
+    |- env/: 环境变量文件，
+    |  |- .prod.env: 部署环境变量，比如数据库端口，用户名，密码，需要的API key等
+    |  |- .dev.env: 开发环境变量
+    |- README.md: 详细解释程序结构以及怎么部署
 
 有任何不确定的，问我。不要随便猜测。

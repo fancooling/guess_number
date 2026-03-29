@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { FirestoreService } from './firestore.service';
+import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
-import { evaluateGuess } from '../utils/guess-evaluator';
+import { evaluateGuess, generateRandomNumber } from '../../common/utils/guess-evaluator';
 
 export type GameState = 'menu' | 'playing' | 'gameover';
 
@@ -15,7 +15,7 @@ export interface GuessResult {
     providedIn: 'root'
 })
 export class GameService {
-    private firestore = inject(FirestoreService);
+    private api = inject(ApiService);
     private auth = inject(AuthService);
 
     state = signal<GameState>('menu');
@@ -25,20 +25,9 @@ export class GameService {
 
     startGame(length: number) {
         this.length.set(length);
-        this.targetNumber.set(this.generateRandomNumber(length));
+        this.targetNumber.set(generateRandomNumber(length));
         this.history.set([]);
         this.state.set('playing');
-    }
-
-    generateRandomNumber(length: number): string {
-        const digits: number[] = [];
-        while (digits.length < length) {
-            const d = Math.floor(Math.random() * 10);
-            if (!digits.includes(d)) {
-                digits.push(d);
-            }
-        }
-        return digits.join('');
     }
 
     makeGuess(guess: string) {
@@ -57,17 +46,9 @@ export class GameService {
     }
 
     private async saveGameResult(): Promise<void> {
-        const userId = this.auth.getUserId();
-        console.log('Saving game result - userId:', userId, 'isLoggedIn:', this.auth.isLoggedIn());
-        if (userId) {
+        if (this.auth.isLoggedIn()) {
             try {
-                await this.firestore.saveGameResult(
-                    userId,
-                    this.auth.displayName(),
-                    this.length(),
-                    this.history().length
-                );
-                console.log('Game result saved successfully');
+                await this.api.saveGameResult(this.length(), this.history().length);
             } catch (error) {
                 console.error('Error saving game result:', error);
             }

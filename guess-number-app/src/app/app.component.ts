@@ -1,15 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, AfterViewChecked, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameService } from './services/game.service';
 import { AuthService } from './services/auth.service';
-import { RoomService } from './services/room.service';
+import { RoomWsService } from './services/room-ws.service';
 import { LeaderBoardComponent } from './components/leader-board/leader-board.component';
 import { PlayerStatsComponent } from './components/player-stats/player-stats.component';
 import { RoomListComponent } from './components/room-list/room-list.component';
 import { RoomLobbyComponent } from './components/room-lobby/room-lobby.component';
 import { RoomGameComponent } from './components/room-game/room-game.component';
-import { LeaderboardEntry } from './models/player-stats';
+import { LeaderboardEntry } from '../common/types/player';
 
 @Component({
     selector: 'app-root',
@@ -17,10 +17,12 @@ import { LeaderboardEntry } from './models/player-stats';
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements AfterViewChecked {
   game = inject(GameService);
   auth = inject(AuthService);
-  roomService = inject(RoomService);
+  roomService = inject(RoomWsService);
+
+  @ViewChild('googleBtn') googleBtn?: ElementRef;
 
   lengthInput = signal(4);
   guessInput = signal('');
@@ -28,6 +30,17 @@ export class AppComponent {
   // UI state
   showLeaderBoard = signal(false);
   selectedPlayer = signal<LeaderboardEntry | null>(null);
+  private googleBtnInitialized = false;
+
+  ngAfterViewChecked() {
+    if (this.googleBtn && !this.googleBtnInitialized) {
+      this.googleBtnInitialized = true;
+      this.auth.initGoogleSignIn(this.googleBtn.nativeElement);
+    }
+    if (!this.googleBtn) {
+      this.googleBtnInitialized = false;
+    }
+  }
 
   startGame() {
     if (this.lengthInput() >= 1 && this.lengthInput() <= 10) {
@@ -49,16 +62,12 @@ export class AppComponent {
   }
 
   // Auth methods
-  async signInWithGoogle() {
-    await this.auth.signInWithGoogle();
-  }
-
   async signInAsGuest() {
     await this.auth.signInAsGuest();
   }
 
-  async signOut() {
-    await this.auth.signOut();
+  signOut() {
+    this.auth.signOut();
   }
 
   // Leaderboard methods

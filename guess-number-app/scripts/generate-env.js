@@ -1,33 +1,29 @@
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
 
-const dir = path.join(__dirname, '..', 'src', 'environments');
-const filePath = path.join(dir, 'environment.ts');
+// Load .dev.env or .prod.env
+const envFile = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, '..', '..', 'env', '.prod.env')
+  : path.join(__dirname, '..', '..', 'env', '.dev.env');
 
-// Skip generation if no env vars are set and environment.ts already exists with real values
-if (!process.env.FIREBASE_API_KEY && fs.existsSync(filePath)) {
-  const existing = fs.readFileSync(filePath, 'utf8');
-  if (existing.includes('apiKey') && !existing.includes("apiKey: ''")) {
-    console.log('No env vars set, keeping existing environment.ts');
-    process.exit(0);
+if (fs.existsSync(envFile)) {
+  const lines = fs.readFileSync(envFile, 'utf8').split('\n');
+  for (const line of lines) {
+    const [key, ...valueParts] = line.split('=');
+    if (key && valueParts.length > 0) {
+      process.env[key.trim()] = valueParts.join('=').trim();
+    }
   }
 }
 
+const dir = path.join(__dirname, '..', 'src', 'environments');
 fs.mkdirSync(dir, { recursive: true });
 
 const content = `export const environment = {
-  firebase: {
-    apiKey: '${process.env.FIREBASE_API_KEY || ''}',
-    authDomain: '${process.env.FIREBASE_AUTH_DOMAIN || ''}',
-    projectId: '${process.env.FIREBASE_PROJECT_ID || ''}',
-    storageBucket: '${process.env.FIREBASE_STORAGE_BUCKET || ''}',
-    messagingSenderId: '${process.env.FIREBASE_MESSAGING_SENDER_ID || ''}',
-    appId: '${process.env.FIREBASE_APP_ID || ''}',
-    dbName: '${process.env.FIREBASE_DB_NAME || '(default)'}'
-  }
+  production: ${process.env.NODE_ENV === 'production'},
+  googleClientId: '${process.env.GOOGLE_CLIENT_ID || ''}',
 };
 `;
 
-fs.writeFileSync(filePath, content);
-console.log('Generated src/app/environments/environment.ts from .env');
+fs.writeFileSync(path.join(dir, 'environment.ts'), content);
+console.log('Generated environment.ts with GOOGLE_CLIENT_ID from env');

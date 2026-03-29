@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RoomService } from '../../services/room.service';
+import { RoomWsService } from '../../services/room-ws.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -121,7 +121,7 @@ import { AuthService } from '../../services/auth.service';
               {{ isWinner() ? '🎉 You Won!' : '🏆 ' + roomService.currentRoom()?.gameState?.winnerName + ' Wins!' }}
             </h3>
             <p class="text-green-800 font-medium text-sm">
-              The number was <span class="font-mono font-black text-lg">{{ roomService.currentRoom()?.gameState?.targetNumber }}</span>
+              The number was <span class="font-mono font-black text-lg">{{ getWinningGuess() }}</span>
             </p>
           </div>
 
@@ -157,7 +157,7 @@ import { AuthService } from '../../services/auth.service';
   `
 })
 export class RoomGameComponent {
-  roomService = inject(RoomService);
+  roomService = inject(RoomWsService);
   auth = inject(AuthService);
 
   guessInput = signal('');
@@ -180,18 +180,25 @@ export class RoomGameComponent {
     return this.roomService.currentRoom()?.gameState?.winnerId === this.auth.getUserId();
   }
 
-  async submitGuess() {
+  getWinningGuess(): string {
+    const history = this.roomService.currentRoom()?.gameState?.history;
+    if (!history || history.length === 0) return '';
+    const lastGuess = history[history.length - 1];
+    return lastGuess.guess;
+  }
+
+  submitGuess() {
     const guess = this.guessInput();
     if (!guess) return;
-    await this.roomService.makeRoomGuess(guess);
+    this.roomService.makeRoomGuess(guess);
     this.guessInput.set('');
   }
 
-  async restartGame() {
-    await this.roomService.restartGame(this.selectedLength());
+  restartGame() {
+    this.roomService.restartGame(this.selectedLength());
   }
 
-  async leaveRoom() {
-    await this.roomService.leaveRoom();
+  leaveRoom() {
+    this.roomService.leaveRoom();
   }
 }

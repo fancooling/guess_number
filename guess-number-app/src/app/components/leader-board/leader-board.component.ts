@@ -1,7 +1,7 @@
 import { Component, inject, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FirestoreService } from '../../services/firestore.service';
-import { LeaderboardEntry } from '../../models/player-stats';
+import { ApiService } from '../../services/api.service';
+import { LeaderboardEntry } from '../../../common/types/player';
 
 @Component({
     selector: 'app-leader-board',
@@ -21,11 +21,11 @@ import { LeaderboardEntry } from '../../models/player-stats';
 
         <!-- Content -->
         <div class="p-4 overflow-y-auto max-h-[calc(80vh-80px)]">
-          <div *ngIf="firestore.leaderboard().length === 0" class="text-center text-gray-500 py-8">
+          <div *ngIf="api.leaderboard().length === 0" class="text-center text-gray-500 py-8">
             No players yet. Be the first!
           </div>
 
-          <div *ngFor="let player of firestore.leaderboard(); let i = index"
+          <div *ngFor="let player of api.leaderboard(); let i = index"
                (click)="selectPlayer.emit(player)"
                class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition border border-gray-100 mb-2">
             <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
@@ -49,13 +49,13 @@ import { LeaderboardEntry } from '../../models/player-stats';
   `
 })
 export class LeaderBoardComponent implements OnInit {
-  firestore = inject(FirestoreService);
+  api = inject(ApiService);
 
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
   @Output() selectPlayer = new EventEmitter<LeaderboardEntry>();
 
   async ngOnInit() {
-    await this.firestore.loadLeaderboard();
+    await this.api.loadLeaderboard();
   }
 }

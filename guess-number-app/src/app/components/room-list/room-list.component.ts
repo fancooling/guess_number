@@ -1,7 +1,7 @@
 import { Component, inject, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RoomService } from '../../services/room.service';
+import { RoomWsService } from '../../services/room-ws.service';
 
 @Component({
     selector: 'app-room-list',
@@ -60,7 +60,7 @@ import { RoomService } from '../../services/room.service';
   `
 })
 export class RoomListComponent {
-  roomService = inject(RoomService);
+  roomService = inject(RoomWsService);
 
   showCreateForm = signal(false);
   roomName = signal('');
@@ -69,7 +69,7 @@ export class RoomListComponent {
     const name = this.roomName().trim();
     if (!name) return;
     try {
-      await this.roomService.createRoom(name);
+      this.roomService.createRoom(name);
       this.roomName.set('');
       this.showCreateForm.set(false);
     } catch (e) {
@@ -77,11 +77,7 @@ export class RoomListComponent {
     }
   }
 
-  async joinRoom(roomId: string) {
-    try {
-      await this.roomService.joinRoom(roomId);
-    } catch (e) {
-      console.error('Error joining room:', e);
-    }
+  joinRoom(roomId: string) {
+    this.roomService.joinRoom(roomId);
   }
 }

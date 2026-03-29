@@ -1,29 +1,19 @@
-# Stage 1: Build Phase
+# Stage 1: Build Angular + NestJS
 FROM node:22-alpine AS build
-
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
-
 COPY . .
-
-# Firebase config passed as build args
-ARG FIREBASE_API_KEY
-ARG FIREBASE_AUTH_DOMAIN
-ARG FIREBASE_PROJECT_ID
-ARG FIREBASE_STORAGE_BUCKET
-ARG FIREBASE_MESSAGING_SENDER_ID
-ARG FIREBASE_APP_ID
-ARG FIREBASE_DB_NAME
-
 RUN npm run build -- --configuration production
+RUN npm run build:server
 
-# Stage 2: Serve Phase
-FROM nginx:alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/guess-number-app/browser /usr/share/nginx/html
+# Stage 2: Production runtime
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=build /app/dist/guess-number-app/browser ./public
+COPY --from=build /app/dist/server ./server
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
 
-# Cloud Run defaults port 8080
-EXPOSE 8080
-
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+CMD ["node", "server/server/main.js"]

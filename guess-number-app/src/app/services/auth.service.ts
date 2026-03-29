@@ -1,53 +1,84 @@
-import { Injectable, signal } from '@angular/core';
-import { signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../firebase.config';
+import { Injectable, inject, signal, NgZone } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { AuthState, AuthUser, LoginResponse } from '../../common/types/auth';
+import { environment } from '../../environments/environment';
 
-export type AuthState = 'loading' | 'guest' | 'authenticated';
+declare const google: any;
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  // Local user state
-  private _user = signal<User | null>(null);
+  private http = inject(HttpClient);
+  private ngZone = inject(NgZone);
+
+  private _user = signal<AuthUser | null>(null);
   private _authState = signal<AuthState>('loading');
   private _displayName = signal<string>('Guest');
+  private _token = signal<string | null>(null);
 
   authState = this._authState.asReadonly();
   displayName = this._displayName.asReadonly();
   user = this._user.asReadonly();
-
-  // Expose as observable-like for room service subscription
-  firebaseUser = {
-    subscribe: (callback: (user: User | null) => void) => {
-      return onAuthStateChanged(auth, callback);
-    }
-  };
+  token = this._token.asReadonly();
 
   constructor() {
-    onAuthStateChanged(auth, (user) => {
-      this._user.set(user);
-      if (user) {
-        this._authState.set(user.isAnonymous ? 'guest' : 'authenticated');
-        this._displayName.set(user.displayName || 'Guest');
-      } else {
-        this._authState.set('loading');
-        this._displayName.set('Guest');
+    this.restoreSession();
+  }
+
+  private restoreSession(): void {
+    const token = localStorage.getItem('auth_token');
+    const userJson = localStorage.getItem('auth_user');
+    if (token && userJson) {
+      try {
+        const user: AuthUser = JSON.parse(userJson);
+        this._token.set(token);
+        this._user.set(user);
+        this._authState.set(user.authState);
+        this._displayName.set(user.displayName);
+      } catch {
+        this.clearSession();
       }
+    } else {
+      this._authState.set('loading');
+    }
+  }
+
+  initGoogleSignIn(buttonElement: HTMLElement): void {
+    if (typeof google === 'undefined' || !google.accounts?.id) {
+      // GIS script not loaded yet, retry after a delay
+      setTimeout(() => this.initGoogleSignIn(buttonElement), 500);
+      return;
+    }
+
+    google.accounts.id.initialize({
+      client_id: environment.googleClientId,
+      callback: (response: any) => {
+        this.ngZone.run(() => this.handleGoogleCredential(response.credential));
+      },
+    });
+
+    google.accounts.id.renderButton(buttonElement, {
+      theme: 'outline',
+      size: 'medium',
+      text: 'signin_with',
+      shape: 'pill',
     });
   }
 
-  async signInWithGoogle(): Promise<void> {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+  async signInWithGoogle(idToken: string): Promise<void> {
+    const response = await firstValueFrom(this.http.post<LoginResponse>('/api/auth/google', { idToken }));
+    this.setSession(response);
   }
 
   async signInAsGuest(): Promise<void> {
-    await signInAnonymously(auth);
+    const response = await firstValueFrom(this.http.post<LoginResponse>('/api/auth/guest', {}));
+    this.setSession(response);
   }
 
-  async signOut(): Promise<void> {
-    await signOut(auth);
+  signOut(): void {
+    this.clearSession();
   }
 
   isLoggedIn(): boolean {
@@ -56,5 +87,35 @@ export class AuthService {
 
   getUserId(): string | null {
     return this._user()?.uid || null;
+  }
+
+  getToken(): string | null {
+    return this._token();
+  }
+
+  private async handleGoogleCredential(credential: string): Promise<void> {
+    try {
+      await this.signInWithGoogle(credential);
+    } catch (e) {
+      console.error('Google sign-in failed:', e);
+    }
+  }
+
+  private setSession(response: LoginResponse): void {
+    this._token.set(response.token);
+    this._user.set(response.user);
+    this._authState.set(response.user.authState);
+    this._displayName.set(response.user.displayName);
+    localStorage.setItem('auth_token', response.token);
+    localStorage.setItem('auth_user', JSON.stringify(response.user));
+  }
+
+  private clearSession(): void {
+    this._token.set(null);
+    this._user.set(null);
+    this._authState.set('loading');
+    this._displayName.set('Guest');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
   }
 }

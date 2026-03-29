@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RoomService } from '../../services/room.service';
+import { RoomWsService } from '../../services/room-ws.service';
 
 @Component({
     selector: 'app-room-lobby',
@@ -73,7 +73,7 @@ import { RoomService } from '../../services/room.service';
   `
 })
 export class RoomLobbyComponent {
-  roomService = inject(RoomService);
+  roomService = inject(RoomWsService);
   selectedLength = signal(4);
 
   emptySlots(): number[] {
@@ -81,15 +81,11 @@ export class RoomLobbyComponent {
     return Array(3 - playerCount).fill(0);
   }
 
-  async startGame() {
-    try {
-      await this.roomService.startGame(this.selectedLength());
-    } catch (e) {
-      console.error('Error starting game:', e);
-    }
+  startGame() {
+    this.roomService.startGame(this.selectedLength());
   }
 
-  async leaveRoom() {
-    await this.roomService.leaveRoom();
+  leaveRoom() {
+    this.roomService.leaveRoom();
   }
 }
