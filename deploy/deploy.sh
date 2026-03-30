@@ -19,9 +19,15 @@ set -a
 source ../env/.prod.env
 set +a
 
-docker compose down
-docker compose build --no-cache
-docker compose up -d
+if [ "$1" = "--app-only" ]; then
+    echo "Rebuilding app only (keeping redis and nginx running)..."
+    docker compose build --no-cache app
+    docker compose up -d --no-deps app
+else
+    docker compose down
+    docker compose build --no-cache
+    docker compose up -d
+fi
 
 echo ""
 echo "Deployment complete!"
