@@ -51,7 +51,7 @@ export class AppComponent implements AfterViewChecked {
 
   submitGuess() {
     const guess = this.guessInput();
-    if (guess && guess.length === this.game.length()) {
+    if (guess && guess.length === this.game.digits()) {
       this.game.makeGuess(guess);
       this.guessInput.set('');
     }

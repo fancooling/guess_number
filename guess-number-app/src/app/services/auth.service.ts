@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthState, AuthUser, LoginResponse } from '../../common/types/auth';
 import { environment } from '../../environments/environment';
+import { AnalyticsService } from './analytics.service';
 
 declare const google: any;
 
@@ -12,6 +13,7 @@ declare const google: any;
 export class AuthService {
   private http = inject(HttpClient);
   private ngZone = inject(NgZone);
+  private analytics = inject(AnalyticsService);
 
   private _user = signal<AuthUser | null>(null);
   private _authState = signal<AuthState>('loading');
@@ -37,6 +39,7 @@ export class AuthService {
         this._user.set(user);
         this._authState.set(user.authState);
         this._displayName.set(user.displayName);
+        this.analytics.setUserId(user.uid);
       } catch {
         this.clearSession();
       }
@@ -108,6 +111,7 @@ export class AuthService {
     this._displayName.set(response.user.displayName);
     localStorage.setItem('auth_token', response.token);
     localStorage.setItem('auth_user', JSON.stringify(response.user));
+    this.analytics.setUserId(response.user.uid);
   }
 
   private clearSession(): void {
@@ -117,5 +121,6 @@ export class AuthService {
     this._displayName.set('Guest');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    this.analytics.clearUserId();
   }
 }

@@ -97,7 +97,7 @@
         <!-- Controls -->
         <div class="flex items-center justify-between mb-4 mt-1">
           <div class="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-            Length: <span class="font-bold text-indigo-600">{{ game.length() }}</span>
+            Length: <span class="font-bold text-indigo-600">{{ game.digits() }}</span>
           </div>
           <button (click)="resetGame()"
             class="text-sm text-gray-500 hover:text-indigo-600 font-bold transition flex items-center gap-1 active:scale-95">
@@ -121,9 +121,9 @@
 
           <div *ngFor="let item of game.history(); let i = index"
             class="bg-white rounded-xl p-3 shadow-sm border flex items-center justify-between hover:shadow-md transition-shadow relative overflow-hidden"
-            [ngClass]="item.greenLights === game.length() ? 'border-green-200 bg-green-50/30' : 'border-gray-100'">
+            [ngClass]="item.greenLights === game.digits() ? 'border-green-200 bg-green-50/30' : 'border-gray-100'">
             <div class="absolute inset-y-0 left-0 w-1.5"
-              [ngClass]="item.greenLights === game.length() ? 'bg-green-500' : (item.greenLights + item.yellowLights === 0 ? 'bg-red-400' : 'bg-yellow-400')">
+              [ngClass]="item.greenLights === game.digits() ? 'bg-green-500' : (item.greenLights + item.yellowLights === 0 ? 'bg-red-400' : 'bg-yellow-400')">
             </div>
 
             <div class="pl-2 flex items-center gap-3">
@@ -153,11 +153,11 @@
         <!-- Playing Input -->
         <div *ngIf="game.state() === 'playing'" class="mt-auto">
           <div class="flex gap-2">
-            <input type="text" [(ngModel)]="guessInput" [maxlength]="game.length()" (keyup.enter)="submitGuess()"
-              placeholder="Enter {{game.length()}} digits"
+            <input type="text" [(ngModel)]="guessInput" [maxlength]="game.digits()" (keyup.enter)="submitGuess()"
+              placeholder="Enter {{game.digits()}} digits"
               class="flex-1 rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-0 bg-gray-50 px-4 py-3 text-lg font-mono tracking-[0.2em] text-center font-bold text-gray-800 transition-colors shadow-sm outline-none"
               pattern="\d*" inputmode="numeric" autofocus>
-            <button (click)="submitGuess()" [disabled]="guessInput().length !== game.length()"
+            <button (click)="submitGuess()" [disabled]="guessInput().length !== game.digits()"
               class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:shadow-none disabled:transform-none disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-2xl shadow-md shadow-indigo-200 transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-300">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"

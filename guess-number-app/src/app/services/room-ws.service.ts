@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed, OnDestroy, effect } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from './auth.service';
+import { AnalyticsService } from './analytics.service';
 import { Room } from '../../common/types/room';
 
 @Injectable({
@@ -8,6 +9,7 @@ import { Room } from '../../common/types/room';
 })
 export class RoomWsService implements OnDestroy {
   private auth = inject(AuthService);
+  private analytics = inject(AnalyticsService);
   private socket: Socket | null = null;
 
   private _availableRooms = signal<Room[]>([]);
@@ -59,7 +61,15 @@ export class RoomWsService implements OnDestroy {
     });
 
     this.socket.on('room:update', (room: Room) => {
+      const prevStatus = this._currentRoom()?.status;
       this._currentRoom.set(room);
+      if (prevStatus === 'playing' && room.status === 'finished') {
+        this.analytics.event('finish_room_game', {
+          digits: room.gameState?.length || 0,
+          steps: room.gameState?.history?.length || 0,
+          winner: room.gameState?.winnerName || '',
+        });
+      }
     });
 
     this.socket.on('room:deleted', () => {
@@ -103,16 +113,19 @@ export class RoomWsService implements OnDestroy {
     this._turnTimeRemaining.set(60);
   }
 
-  startGame(length: number): void {
-    this.socket?.emit('start:game', { length });
+  startGame(digits: number): void {
+    this.socket?.emit('start:game', { length: digits });
+    this.analytics.event('start_room_game', { digits, players: this._currentRoom()?.players.length || 0 });
   }
 
   makeRoomGuess(guess: string): void {
     this.socket?.emit('make:guess', { guess });
+    this.analytics.event('room_guess');
   }
 
-  restartGame(length: number): void {
-    this.socket?.emit('restart:game', { length });
+  restartGame(digits: number): void {
+    this.socket?.emit('restart:game', { length: digits });
+    this.analytics.event('start_room_game', { digits, players: this._currentRoom()?.players.length || 0 });
   }
 
   dismissNotification(): void {
