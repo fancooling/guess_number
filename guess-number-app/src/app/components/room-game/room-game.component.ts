@@ -73,12 +73,14 @@ import { AuthService } from '../../services/auth.service';
 
               <div class="flex gap-1.5">
                 <div *ngIf="item.greenLights > 0"
-                  class="flex items-center bg-green-50 rounded-full px-2 py-0.5 border border-green-100 gap-1">
+                  class="flex items-center bg-green-50 rounded-full px-2 py-0.5 border border-green-100 gap-1 cursor-help"
+                  title="Green: correct digit in the correct position">
                   <span class="text-green-700 font-black text-sm">{{ item.greenLights }}</span>
                   <div class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></div>
                 </div>
                 <div *ngIf="item.yellowLights > 0"
-                  class="flex items-center bg-yellow-50 rounded-full px-2 py-0.5 border border-yellow-100 gap-1">
+                  class="flex items-center bg-yellow-50 rounded-full px-2 py-0.5 border border-yellow-100 gap-1 cursor-help"
+                  title="Yellow: correct digit but in the wrong position">
                   <span class="text-yellow-700 font-black text-sm">{{ item.yellowLights }}</span>
                   <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-[0_0_6px_rgba(250,204,21,0.6)]"></div>
                 </div>
