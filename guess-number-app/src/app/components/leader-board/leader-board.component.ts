@@ -37,7 +37,7 @@ import { LeaderboardEntry } from '../../../common/types/player';
             </div>
             <div class="flex-1">
               <div class="font-semibold text-gray-800">{{ player.displayName }}</div>
-              <div class="text-xs text-gray-500">{{ player.totalWins }} wins<span *ngIf="player.roomWins > 0"> ({{ player.roomWins }} in rooms)</span></div>
+              <div class="text-xs text-gray-500">{{ player.totalWins }} wins ({{ getAvgSteps(player) }} steps avg)<span *ngIf="player.roomWins > 0"> · {{ player.roomWins }} in rooms</span></div>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
               <path d="m9 18 6-6-6-6"/>
@@ -57,5 +57,12 @@ export class LeaderBoardComponent implements OnInit {
 
   async ngOnInit() {
     await this.api.loadLeaderboard();
+  }
+
+  getAvgSteps(player: LeaderboardEntry): string {
+    const totalGuesses = Object.values(player.stats).reduce((sum, s) => sum + s.totalGuesses, 0);
+    const totalWins = Object.values(player.stats).reduce((sum, s) => sum + s.wins, 0);
+    if (totalWins === 0) return '-';
+    return (totalGuesses / totalWins).toFixed(1);
   }
 }
