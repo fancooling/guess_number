@@ -26,7 +26,6 @@ export class PlayerService {
 
       await this.redis.hset(key, 'stats', JSON.stringify(stats));
       await this.redis.hset(key, 'totalWins', String(totalWins));
-      await this.redis.hset(key, 'displayName', displayName);
 
       if (isRoomWin) {
         await this.redis.hincrby(key, 'roomWins', 1);
