@@ -44,7 +44,7 @@
 
       <!-- User display name when logged in -->
       <div *ngIf="auth.isLoggedIn()" class="mt-2 text-xs text-indigo-200">
-        Playing as: <button *ngIf="auth.authState() === 'authenticated'" (click)="openNameEdit()" class="text-white font-semibold hover:underline cursor-pointer bg-transparent border-none p-0">{{ auth.displayName() }}</button>
+        Playing as: <button *ngIf="auth.authState() === 'authenticated'" (click)="openNameEdit()" class="text-yellow-300 font-semibold underline decoration-dotted underline-offset-2 hover:text-yellow-200 cursor-pointer bg-transparent border-none p-0">{{ auth.displayName() }} &#9998;</button>
         <span *ngIf="auth.authState() !== 'authenticated'" class="text-white font-semibold">{{ auth.displayName() }}</span>
       </div>
     </div>
