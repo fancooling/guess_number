@@ -19,14 +19,15 @@ set -a
 source ../env/.prod.env
 set +a
 
-if [ "$1" = "--app-only" ]; then
-    echo "Rebuilding app only (keeping redis and nginx running)..."
-    docker compose build --no-cache app
-    docker compose up -d --no-deps app
-else
+if [ "$1" = "--all" ]; then
+    echo "Rebuilding all services..."
     docker compose down
     docker compose build --no-cache
     docker compose up -d
+else
+    echo "Rebuilding app only (keeping redis and nginx running)..."
+    docker compose build --no-cache app
+    docker compose up -d --no-deps app
 fi
 
 echo ""
