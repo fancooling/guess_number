@@ -16,14 +16,16 @@ export class AuthService {
   private analytics = inject(AnalyticsService);
 
   private _user = signal<AuthUser | null>(null);
-  private _authState = signal<AuthState>('loading');
+  private _authState = signal<AuthState>('guest');
   private _displayName = signal<string>('Guest');
   private _token = signal<string | null>(null);
+  private _showNamePrompt = signal<boolean>(false);
 
   authState = this._authState.asReadonly();
   displayName = this._displayName.asReadonly();
   user = this._user.asReadonly();
   token = this._token.asReadonly();
+  showNamePrompt = this._showNamePrompt.asReadonly();
 
   constructor() {
     this.restoreSession();
@@ -44,7 +46,7 @@ export class AuthService {
         this.clearSession();
       }
     } else {
-      this._authState.set('loading');
+      this._authState.set('guest');
     }
   }
 
@@ -85,7 +87,7 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return this._authState() === 'guest' || this._authState() === 'authenticated';
+    return this._token() !== null;
   }
 
   getUserId(): string | null {
@@ -94,6 +96,20 @@ export class AuthService {
 
   getToken(): string | null {
     return this._token();
+  }
+
+  updateDisplayName(name: string): void {
+    this._displayName.set(name);
+    const user = this._user();
+    if (user) {
+      const updated = { ...user, displayName: name };
+      this._user.set(updated);
+      localStorage.setItem('auth_user', JSON.stringify(updated));
+    }
+  }
+
+  dismissNamePrompt(): void {
+    this._showNamePrompt.set(false);
   }
 
   private async handleGoogleCredential(credential: string): Promise<void> {
@@ -112,12 +128,15 @@ export class AuthService {
     localStorage.setItem('auth_token', response.token);
     localStorage.setItem('auth_user', JSON.stringify(response.user));
     this.analytics.setUserId(response.user.uid);
+    if (response.user.isNewPlayer) {
+      this._showNamePrompt.set(true);
+    }
   }
 
   private clearSession(): void {
     this._token.set(null);
     this._user.set(null);
-    this._authState.set('loading');
+    this._authState.set('guest');
     this._displayName.set('Guest');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');

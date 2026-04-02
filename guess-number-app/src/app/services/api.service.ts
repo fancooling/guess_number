@@ -19,6 +19,13 @@ export class ApiService {
     return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
   }
 
+  async updateDisplayName(displayName: string): Promise<string> {
+    const result = await firstValueFrom(
+      this.http.post<{ ok: boolean; displayName: string }>('/api/players/display-name', { displayName }, { headers: this.getHeaders() })
+    );
+    return result.displayName;
+  }
+
   async saveGameResult(length: number, guessCount: number): Promise<void> {
     await firstValueFrom(
       this.http.post('/api/players/game-result', { length, guessCount }, { headers: this.getHeaders() })

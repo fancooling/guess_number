@@ -15,18 +15,8 @@
     <div class="bg-indigo-600 text-white p-6 text-center shadow-md relative z-10">
       <div class="flex justify-between items-start absolute top-3 left-3 right-3">
         <!-- Auth Section -->
-        <div *ngIf="auth.authState() === 'loading'" class="text-xs text-indigo-200">Loading...</div>
 
         <div class="flex gap-2">
-          <!-- Not logged in -->
-          <div *ngIf="!auth.isLoggedIn()" class="flex gap-2 items-center">
-            <button (click)="signInAsGuest()"
-              class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-full font-medium transition">
-              Guest
-            </button>
-            <div #googleBtn></div>
-          </div>
-
           <!-- Logged in -->
           <div *ngIf="auth.isLoggedIn()" class="flex gap-2">
             <button (click)="openLeaderBoard()"
@@ -54,7 +44,8 @@
 
       <!-- User display name when logged in -->
       <div *ngIf="auth.isLoggedIn()" class="mt-2 text-xs text-indigo-200">
-        Playing as: <span class="text-white font-semibold">{{ auth.displayName() }}</span>
+        Playing as: <button *ngIf="auth.authState() === 'authenticated'" (click)="openNameEdit()" class="text-white font-semibold hover:underline cursor-pointer bg-transparent border-none p-0">{{ auth.displayName() }}</button>
+        <span *ngIf="auth.authState() !== 'authenticated'" class="text-white font-semibold">{{ auth.displayName() }}</span>
       </div>
     </div>
 
@@ -189,9 +180,32 @@
     </div>
   </div>
 
-  <!-- Room List (for authenticated non-guest users, when not in a room) -->
+  <!-- Room List (for logged-in users, when not in a room) -->
   <div *ngIf="!roomService.isInRoom() && auth.authState() === 'authenticated'" class="max-w-md w-full">
     <app-room-list></app-room-list>
+  </div>
+
+  <!-- Greyed-out Room List (for guest users) -->
+  <div *ngIf="!roomService.isInRoom() && auth.authState() === 'guest'" class="max-w-md w-full mt-6">
+    <div class="bg-white rounded-3xl shadow-xl border border-white/50 overflow-hidden">
+      <div class="bg-gray-400 text-white p-4 flex items-center justify-between opacity-50">
+        <h2 class="text-lg font-bold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Game Rooms
+        </h2>
+      </div>
+      <div class="p-6 text-center">
+        <p class="text-gray-500 text-sm mb-3">Sign in with Google to create or join game rooms and view the leaderboard!</p>
+        <div class="flex justify-center">
+          <div #googleBtn></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -206,6 +220,32 @@
   [player]="selectedPlayer()!"
   (close)="closePlayerStats()">
 </app-player-stats>
+
+<!-- Display Name Edit Modal -->
+<div *ngIf="showNameEdit() || auth.showNamePrompt()" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="p-6">
+      <h3 class="text-lg font-bold text-gray-800 mb-2 text-center">
+        {{ auth.showNamePrompt() ? 'Welcome! Set Your Game Name' : 'Change Display Name' }}
+      </h3>
+      <p *ngIf="auth.showNamePrompt()" class="text-sm text-gray-500 mb-4 text-center">Choose a name that other players will see.</p>
+      <input type="text" [(ngModel)]="nameInput" (keyup.enter)="saveDisplayName()"
+        placeholder="Enter display name" maxlength="20"
+        class="w-full rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-0 bg-gray-50 px-4 py-3 text-center font-semibold text-gray-800 transition-colors outline-none mb-4"
+        autofocus>
+      <div class="flex gap-2">
+        <button (click)="cancelNameEdit()"
+          class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition">
+          {{ auth.showNamePrompt() ? 'Skip' : 'Cancel' }}
+        </button>
+        <button (click)="saveDisplayName()" [disabled]="!nameInput().trim()"
+          class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-xl transition">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Notification Modal -->
 <div *ngIf="roomService.notification()" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (click)="roomService.dismissNotification()">

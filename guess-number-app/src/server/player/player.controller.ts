@@ -18,6 +18,21 @@ export class PlayerController {
     return stats;
   }
 
+  @Post('display-name')
+  @UseGuards(JwtAuthGuard)
+  async updateDisplayName(
+    @Req() req: any,
+    @Body() body: { displayName: string },
+  ) {
+    const { uid } = req.user;
+    const name = body.displayName?.trim();
+    if (!name || name.length > 20) {
+      throw new NotFoundException('Display name must be 1-20 characters');
+    }
+    await this.playerService.updateDisplayName(uid, name);
+    return { ok: true, displayName: name };
+  }
+
   @Post('game-result')
   @UseGuards(JwtAuthGuard)
   async saveGameResult(

@@ -79,6 +79,11 @@ export class PlayerService {
     return entries;
   }
 
+  async updateDisplayName(uid: string, displayName: string): Promise<void> {
+    const key = `player:${uid}`;
+    await this.redis.hset(key, 'displayName', displayName);
+  }
+
   getAverageGuesses(stats: { [key: number]: LengthStats }, length: number): number | null {
     const lengthStats = stats[length];
     if (!lengthStats || lengthStats.wins === 0) return null;
