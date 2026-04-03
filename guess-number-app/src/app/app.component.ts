@@ -1,6 +1,7 @@
 import { Component, inject, signal, AfterViewChecked, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Capacitor } from '@capacitor/core';
 import { GameService } from './services/game.service';
 import { AuthService } from './services/auth.service';
 import { ApiService } from './services/api.service';
@@ -26,6 +27,7 @@ export class AppComponent implements AfterViewChecked {
 
   @ViewChild('googleBtn') googleBtn?: ElementRef;
 
+  isNative = Capacitor.isNativePlatform();
   lengthInput = signal(4);
   guessInput = signal('');
 
@@ -68,6 +70,10 @@ export class AppComponent implements AfterViewChecked {
   // Auth methods
   async signInAsGuest() {
     await this.auth.signInAsGuest();
+  }
+
+  async nativeGoogleSignIn() {
+    await this.auth.signInWithGoogleNative();
   }
 
   signOut() {

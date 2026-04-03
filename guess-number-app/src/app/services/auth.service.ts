@@ -1,6 +1,8 @@
 import { Injectable, inject, signal, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { AuthState, AuthUser, LoginResponse } from '../../common/types/auth';
 import { environment } from '../../environments/environment';
 import { AnalyticsService } from './analytics.service';
@@ -21,6 +23,8 @@ export class AuthService {
   private _token = signal<string | null>(null);
   private _showNamePrompt = signal<boolean>(false);
 
+  private isNative = Capacitor.isNativePlatform();
+
   authState = this._authState.asReadonly();
   displayName = this._displayName.asReadonly();
   user = this._user.asReadonly();
@@ -29,6 +33,14 @@ export class AuthService {
 
   constructor() {
     this.restoreSession();
+    if (!this.isNative) {
+      // GIS is only used on web
+    } else {
+      GoogleAuth.initialize({
+        clientId: environment.googleClientId,
+        scopes: ['profile', 'email'],
+      });
+    }
   }
 
   private restoreSession(): void {
@@ -51,8 +63,9 @@ export class AuthService {
   }
 
   initGoogleSignIn(buttonElement: HTMLElement): void {
+    if (this.isNative) return;
+
     if (typeof google === 'undefined' || !google.accounts?.id) {
-      // GIS script not loaded yet, retry after a delay
       setTimeout(() => this.initGoogleSignIn(buttonElement), 500);
       return;
     }
@@ -72,6 +85,18 @@ export class AuthService {
     });
   }
 
+  async signInWithGoogleNative(): Promise<void> {
+    try {
+      const result = await GoogleAuth.signIn();
+      const idToken = result.authentication.idToken;
+      if (idToken) {
+        await this.signInWithGoogle(idToken);
+      }
+    } catch (e) {
+      console.error('Native Google sign-in failed:', e);
+    }
+  }
+
   async signInWithGoogle(idToken: string): Promise<void> {
     const response = await firstValueFrom(this.http.post<LoginResponse>('/api/auth/google', { idToken }));
     this.setSession(response);
@@ -83,6 +108,9 @@ export class AuthService {
   }
 
   signOut(): void {
+    if (this.isNative) {
+      GoogleAuth.signOut().catch(() => {});
+    }
     this.clearSession();
   }
 
