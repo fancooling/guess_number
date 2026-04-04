@@ -71,7 +71,7 @@
     *   redis用AOF保存数据。
 *   整个系统运行在Public VPS, 域名guessnumber.flamebots.org
 *   Android应用发布在Google Play上
-*   IOS应用暂时不发布，可以本地运行
+*   IOS应用发布在App Store上
 *   文件结构
     ~/code/guess_number/: 整个项目根目录
     |- guess-number-app/: Web app代码

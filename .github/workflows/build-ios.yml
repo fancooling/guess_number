@@ -1,0 +1,42 @@
+name: Build iOS
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: guess-number-app
+        run: npm ci --legacy-peer-deps
+
+      - name: Build Angular
+        working-directory: guess-number-app
+        run: npm run build -- --configuration production
+
+      - name: Sync Capacitor iOS
+        working-directory: guess-number-app
+        run: npx cap sync ios
+
+      - name: Build iOS (simulator)
+        working-directory: guess-number-app/ios/App
+        run: |
+          xcodebuild build \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: guess-number-app/ios/App/build
