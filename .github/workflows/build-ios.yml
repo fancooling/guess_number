@@ -36,10 +36,11 @@ jobs:
             -scheme App \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             -configuration Debug \
+            -derivedDataPath ./build \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: guess-number-app/ios/App/build
+          path: guess-number-app/ios/App/build/Build/Products/Debug-iphonesimulator/App.app
