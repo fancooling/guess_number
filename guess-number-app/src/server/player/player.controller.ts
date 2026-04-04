@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards, Req, NotFoundException } from '@nestjs/common';
 import { PlayerService } from './player.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -40,6 +40,14 @@ export class PlayerController {
     const stats = await this.playerService.getPlayerStats(uid);
     if (!stats) throw new NotFoundException('Player not found');
     return stats;
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  async deleteAccount(@Req() req: any) {
+    const { uid } = req.user;
+    await this.playerService.deleteAccount(uid);
+    return { ok: true };
   }
 
   @Post('game-result')

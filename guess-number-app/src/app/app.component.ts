@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import { GameService } from './services/game.service';
 import { AuthService } from './services/auth.service';
 import { ApiService } from './services/api.service';
+import { AnalyticsService } from './services/analytics.service';
 import { RoomWsService } from './services/room-ws.service';
 import { LeaderBoardComponent } from './components/leader-board/leader-board.component';
 import { PlayerStatsComponent } from './components/player-stats/player-stats.component';
@@ -23,6 +24,7 @@ export class AppComponent implements AfterViewChecked {
   game = inject(GameService);
   auth = inject(AuthService);
   api = inject(ApiService);
+  analytics = inject(AnalyticsService);
   roomService = inject(RoomWsService);
 
   @ViewChild('googleBtn') googleBtn?: ElementRef;
@@ -127,5 +129,16 @@ export class AppComponent implements AfterViewChecked {
   cancelProfile() {
     this.showProfile.set(false);
     this.auth.dismissNamePrompt();
+  }
+
+  async deleteAccount() {
+    if (!confirm('Are you sure? This will permanently delete your account and all game data.')) return;
+    try {
+      await this.api.deleteAccount();
+      this.showProfile.set(false);
+      this.auth.signOut();
+    } catch (e) {
+      console.error('Error deleting account:', e);
+    }
   }
 }

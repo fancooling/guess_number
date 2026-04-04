@@ -269,6 +269,13 @@
           Save
         </button>
       </div>
+
+      <!-- Delete Account -->
+      <div *ngIf="!auth.showNamePrompt()" class="mt-4 pt-4 border-t border-gray-100 text-center">
+        <button (click)="deleteAccount()" class="text-xs text-red-400 hover:text-red-600 transition bg-transparent border-none cursor-pointer p-0">
+          Delete my account and all data
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -288,8 +295,11 @@
       <ul class="list-disc pl-5 space-y-1">
         <li><strong>Google Account Info:</strong> If you sign in with Google, we only store a unique user ID and your chosen display name. We do not store your name, email, or any other Google account information.</li>
         <li><strong>Game Data:</strong> We store your game statistics (wins, guess counts) for the leaderboard. You can opt out anytime in your profile, which deletes your game statistics.</li>
-        <li><strong>Analytics:</strong> We use Google Analytics to understand app usage. This collects anonymous data such as page views and events.</li>
+        <li><strong>Analytics:</strong> We use Google Analytics to understand how the Game is used. Analytics is only enabled with your consent.</li>
       </ul>
+
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Cookies and Consent</h4>
+      <p>The Game asks for your consent before enabling analytics cookies. You can accept or decline. Your preference is stored locally in your browser.</p>
 
       <h4 class="font-bold text-gray-800 mt-4 mb-1">Information We Do Not Collect</h4>
       <ul class="list-disc pl-5 space-y-1">
@@ -297,21 +307,24 @@
         <li>We do not sell, share, or trade your personal information with third parties.</li>
       </ul>
 
-      <h4 class="font-bold text-gray-800 mt-4 mb-1">Data Storage</h4>
-      <p>Your data is stored on our server and is not shared with third parties. Guest users' data is not stored.</p>
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Data Storage and Retention</h4>
+      <p>Your data is stored on our server and is not shared with third parties. Guest users' data is not stored. Account data is retained until you delete your account.</p>
 
-      <h4 class="font-bold text-gray-800 mt-4 mb-1">Your Choices</h4>
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Your Rights</h4>
       <ul class="list-disc pl-5 space-y-1">
         <li>You can play as a guest without signing in — no data is stored.</li>
         <li>You can change your display name at any time.</li>
         <li>You can opt out of the leaderboard, which deletes your game statistics.</li>
+        <li>You can delete your account and all data from your profile settings.</li>
+        <li>You can accept or decline analytics cookies. Declining does not affect gameplay.</li>
+        <li>EU users have the right to access, correct, or request deletion of personal data under the GDPR.</li>
       </ul>
 
       <h4 class="font-bold text-gray-800 mt-4 mb-1">Children's Privacy</h4>
-      <p>The App does not knowingly collect personal information from children under 13.</p>
+      <p>The Game is intended for users aged 13 and above. We do not knowingly collect personal information from children under 13.</p>
 
       <h4 class="font-bold text-gray-800 mt-4 mb-1">Contact</h4>
-      <p>If you have questions, please contact us at <strong>flamebots.org</strong>.</p>
+      <p>If you have questions or wish to exercise your data rights, please contact us at <strong>flamebots.org</strong>.</p>
     </div>
   </div>
 </div>
@@ -331,6 +344,17 @@
         class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition">
         OK
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Analytics Consent Banner -->
+<div *ngIf="analytics.showConsentBanner()" class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 z-50 shadow-lg">
+  <div class="max-w-lg mx-auto flex items-center justify-between gap-4">
+    <p class="text-sm">We use cookies and analytics to improve your experience. <button (click)="showPrivacy.set(true)" class="underline bg-transparent border-none text-white cursor-pointer p-0 text-sm">Learn more</button></p>
+    <div class="flex gap-2 shrink-0">
+      <button (click)="analytics.declineConsent()" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg transition">Decline</button>
+      <button (click)="analytics.acceptConsent()" class="text-xs bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-lg transition">Accept</button>
     </div>
   </div>
 </div>

@@ -99,6 +99,11 @@ export class PlayerService {
     }
   }
 
+  async deleteAccount(uid: string): Promise<void> {
+    await this.redis.zrem('leaderboard', uid);
+    await this.redis.del(`player:${uid}`);
+  }
+
   getAverageGuesses(stats: { [key: number]: LengthStats }, length: number): number | null {
     const lengthStats = stats[length];
     if (!lengthStats || lengthStats.wins === 0) return null;

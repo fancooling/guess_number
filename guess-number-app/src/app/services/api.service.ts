@@ -32,6 +32,12 @@ export class ApiService {
     );
   }
 
+  async deleteAccount(): Promise<void> {
+    await firstValueFrom(
+      this.http.delete('/api/players/account', { headers: this.getHeaders() })
+    );
+  }
+
   async saveGameResult(length: number, guessCount: number): Promise<void> {
     await firstValueFrom(
       this.http.post('/api/players/game-result', { length, guessCount }, { headers: this.getHeaders() })
