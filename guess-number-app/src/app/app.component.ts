@@ -35,6 +35,7 @@ export class AppComponent implements AfterViewChecked {
   showLeaderBoard = signal(false);
   selectedPlayer = signal<LeaderboardEntry | null>(null);
   showProfile = signal(false);
+  showPrivacy = signal(false);
   nameInput = signal('');
   joinLeaderboardInput = signal(true);
   private googleBtnInitialized = false;

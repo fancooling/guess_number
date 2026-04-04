@@ -217,6 +217,11 @@
       </div>
     </div>
   </div>
+
+  <!-- Footer -->
+  <div *ngIf="!roomService.isInRoom()" class="mt-4 text-center">
+    <button (click)="showPrivacy.set(true)" class="text-xs text-gray-400 hover:text-gray-600 transition bg-transparent border-none cursor-pointer p-0">Privacy Policy</button>
+  </div>
 </div>
 
 <!-- Leaderboard Modal -->
@@ -264,6 +269,49 @@
           Save
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div *ngIf="showPrivacy()" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (click)="showPrivacy.set(false)" (keydown.escape)="showPrivacy.set(false)">
+  <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between p-4 border-b border-gray-100">
+      <h3 class="text-lg font-bold text-gray-800">Privacy Policy</h3>
+      <button (click)="showPrivacy.set(false)" class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 overflow-y-auto text-sm text-gray-700 leading-relaxed">
+      <p class="text-xs text-gray-400 mb-3">Last updated: April 3, 2026</p>
+      <p><strong>Guess Number</strong> ("the Game") is a number guessing game. This policy explains how we handle your information.</p>
+
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Information We Collect</h4>
+      <ul class="list-disc pl-5 space-y-1">
+        <li><strong>Google Account Info:</strong> If you sign in with Google, we only store a unique user ID and your chosen display name. We do not store your name, email, or any other Google account information.</li>
+        <li><strong>Game Data:</strong> We store your game statistics (wins, guess counts) for the leaderboard. You can opt out anytime in your profile, which deletes your game statistics.</li>
+        <li><strong>Analytics:</strong> We use Google Analytics to understand app usage. This collects anonymous data such as page views and events.</li>
+      </ul>
+
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Information We Do Not Collect</h4>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>We do not collect your location, contacts, photos, or device sensor data.</li>
+        <li>We do not sell, share, or trade your personal information with third parties.</li>
+      </ul>
+
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Data Storage</h4>
+      <p>Your data is stored on our server and is not shared with third parties. Guest users' data is not stored.</p>
+
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Your Choices</h4>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>You can play as a guest without signing in — no data is stored.</li>
+        <li>You can change your display name at any time.</li>
+        <li>You can opt out of the leaderboard, which deletes your game statistics.</li>
+      </ul>
+
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Children's Privacy</h4>
+      <p>The App does not knowingly collect personal information from children under 13.</p>
+
+      <h4 class="font-bold text-gray-800 mt-4 mb-1">Contact</h4>
+      <p>If you have questions, please contact us at <strong>flamebots.org</strong>.</p>
     </div>
   </div>
 </div>
