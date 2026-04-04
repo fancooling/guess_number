@@ -4,7 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   rootDir: './src',
   testMatch: ['**/*.spec.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/app/'],
+  testPathIgnorePatterns: ['/node_modules/', 'src/app/'],
   moduleNameMapper: {
     '^@common/(.*)$': '<rootDir>/common/$1',
   },
