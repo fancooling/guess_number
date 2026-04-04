@@ -7,8 +7,11 @@ android {
         applicationId "org.flamebots.guessnumber"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        def major = 1
+        def minor = 0
+        def buildNum = "git rev-list --count HEAD".execute().text.trim().toInteger()
+        versionCode major * 100000 + minor * 1000 + buildNum
+        versionName "${major}.${minor}.${buildNum}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
