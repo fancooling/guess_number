@@ -45,6 +45,10 @@ export class RedisService implements OnModuleDestroy {
     await this.client.zadd(key, score, member);
   }
 
+  async zrem(key: string, ...members: string[]): Promise<void> {
+    await this.client.zrem(key, ...members);
+  }
+
   async zrevrange(key: string, start: number, stop: number): Promise<string[]> {
     return this.client.zrevrange(key, start, stop);
   }

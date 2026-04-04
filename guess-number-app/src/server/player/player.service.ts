@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
-import { PlayerStats, LeaderboardEntry, LengthStats } from '../../common/types/player';
+import { PlayerStats, LeaderboardEntry, LengthStats, PlayerProfile } from '../../common/types/player';
 
 @Injectable()
 export class PlayerService {
@@ -9,6 +9,12 @@ export class PlayerService {
   async saveGameResult(uid: string, displayName: string, length: number, guessCount: number, isRoomWin = false): Promise<void> {
     const key = `player:${uid}`;
     const exists = await this.redis.exists(key);
+
+    // Skip saving if player opted out of leaderboard
+    if (exists) {
+      const joinLeaderboard = await this.redis.hget(key, 'joinLeaderboard');
+      if (joinLeaderboard === 'false') return;
+    }
 
     if (exists) {
       const rawStats = await this.redis.hget(key, 'stats');
@@ -60,6 +66,7 @@ export class PlayerService {
       displayName: data['displayName'],
       totalWins: parseInt(data['totalWins'] || '0', 10),
       roomWins: parseInt(data['roomWins'] || '0', 10),
+      joinLeaderboard: data['joinLeaderboard'] !== 'false',
       stats: data['stats'] ? JSON.parse(data['stats']) : {},
     };
   }
@@ -70,7 +77,7 @@ export class PlayerService {
 
     for (const { member: uid } of topUids) {
       const stats = await this.getPlayerStats(uid);
-      if (stats) {
+      if (stats && stats.joinLeaderboard) {
         entries.push(stats);
       }
     }
@@ -78,9 +85,18 @@ export class PlayerService {
     return entries;
   }
 
-  async updateDisplayName(uid: string, displayName: string): Promise<void> {
+  async updateProfile(uid: string, profile: PlayerProfile): Promise<void> {
     const key = `player:${uid}`;
-    await this.redis.hset(key, 'displayName', displayName);
+    await this.redis.hset(key, 'displayName', profile.displayName);
+    await this.redis.hset(key, 'joinLeaderboard', String(profile.joinLeaderboard));
+
+    if (!profile.joinLeaderboard) {
+      // Remove from leaderboard and clear game stats, but keep profile
+      await this.redis.zrem('leaderboard', uid);
+      await this.redis.hset(key, 'totalWins', '0');
+      await this.redis.hset(key, 'roomWins', '0');
+      await this.redis.hset(key, 'stats', JSON.stringify({ 3: { wins: 0, totalGuesses: 0 }, 4: { wins: 0, totalGuesses: 0 }, 5: { wins: 0, totalGuesses: 0 } }));
+    }
   }
 
   getAverageGuesses(stats: { [key: number]: LengthStats }, length: number): number | null {

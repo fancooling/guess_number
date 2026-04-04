@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
-import { PlayerStats, LeaderboardEntry, LengthStats } from '../../common/types/player';
+import { PlayerStats, LeaderboardEntry, LengthStats, PlayerProfile } from '../../common/types/player';
 
 @Injectable({
   providedIn: 'root'
@@ -19,11 +19,17 @@ export class ApiService {
     return new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
   }
 
-  async updateDisplayName(displayName: string): Promise<string> {
+  async updateProfile(profile: PlayerProfile): Promise<PlayerProfile> {
     const result = await firstValueFrom(
-      this.http.post<{ ok: boolean; displayName: string }>('/api/players/display-name', { displayName }, { headers: this.getHeaders() })
+      this.http.post<{ ok: boolean; displayName: string; joinLeaderboard: boolean }>('/api/players/profile', profile, { headers: this.getHeaders() })
     );
-    return result.displayName;
+    return { displayName: result.displayName, joinLeaderboard: result.joinLeaderboard };
+  }
+
+  async getProfile(): Promise<PlayerProfile> {
+    return await firstValueFrom(
+      this.http.get<PlayerProfile>('/api/players/profile', { headers: this.getHeaders() })
+    );
   }
 
   async saveGameResult(length: number, guessCount: number): Promise<void> {

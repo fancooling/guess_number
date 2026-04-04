@@ -44,7 +44,7 @@
 
       <!-- User display name when logged in -->
       <div *ngIf="auth.isLoggedIn()" class="mt-2 text-xs text-indigo-200">
-        Playing as: <button *ngIf="auth.authState() === 'authenticated'" (click)="openNameEdit()" class="text-yellow-300 font-semibold underline decoration-dotted underline-offset-2 hover:text-yellow-200 cursor-pointer bg-transparent border-none p-0">{{ auth.displayName() }} &#9998;</button>
+        Playing as: <button *ngIf="auth.authState() === 'authenticated'" (click)="openProfile()" class="text-yellow-300 font-semibold underline decoration-dotted underline-offset-2 hover:text-yellow-200 cursor-pointer bg-transparent border-none p-0">{{ auth.displayName() }} &#9998;</button>
         <span *ngIf="auth.authState() !== 'authenticated'" class="text-white font-semibold">{{ auth.displayName() }}</span>
       </div>
     </div>
@@ -231,24 +231,35 @@
   (close)="closePlayerStats()">
 </app-player-stats>
 
-<!-- Display Name Edit Modal -->
-<div *ngIf="showNameEdit() || auth.showNamePrompt()" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+<!-- Profile Modal -->
+<div *ngIf="showProfile() || auth.showNamePrompt()" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl" (click)="$event.stopPropagation()">
     <div class="p-6">
       <h3 class="text-lg font-bold text-gray-800 mb-2 text-center">
-        {{ auth.showNamePrompt() ? 'Welcome! Set Your Game Name' : 'Change Display Name' }}
+        {{ auth.showNamePrompt() ? 'Welcome! Set Up Your Profile' : 'Edit Profile' }}
       </h3>
-      <p *ngIf="auth.showNamePrompt()" class="text-sm text-gray-500 mb-4 text-center">Choose a name that other players will see.</p>
-      <input type="text" [(ngModel)]="nameInput" (keyup.enter)="saveDisplayName()"
+      <p *ngIf="auth.showNamePrompt()" class="text-sm text-gray-500 mb-4 text-center">You can change these settings anytime by clicking your name.</p>
+
+      <!-- Display Name -->
+      <label class="text-sm font-semibold text-gray-600 mb-1 block">Game Name</label>
+      <input type="text" [(ngModel)]="nameInput" (keyup.enter)="saveProfile()"
         placeholder="Enter display name" maxlength="20"
         class="w-full rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-0 bg-gray-50 px-4 py-3 text-center font-semibold text-gray-800 transition-colors outline-none mb-4"
         autofocus>
+
+      <!-- Leaderboard opt-in -->
+      <label class="flex items-center gap-3 mb-5 cursor-pointer">
+        <input type="checkbox" [(ngModel)]="joinLeaderboardInput"
+          class="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+        <span class="text-sm text-gray-700">Show my stats on the leaderboard</span>
+      </label>
+
       <div class="flex gap-2">
-        <button (click)="cancelNameEdit()"
+        <button (click)="cancelProfile()"
           class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition">
           {{ auth.showNamePrompt() ? 'Skip' : 'Cancel' }}
         </button>
-        <button (click)="saveDisplayName()" [disabled]="!nameInput().trim()"
+        <button (click)="saveProfile()" [disabled]="!nameInput().trim()"
           class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-xl transition">
           Save
         </button>

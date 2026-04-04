@@ -11,26 +11,35 @@ export class PlayerController {
     return this.playerService.getLeaderboard();
   }
 
-  @Get(':uid')
-  async getPlayerStats(@Param('uid') uid: string) {
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req: any) {
+    const { uid } = req.user;
     const stats = await this.playerService.getPlayerStats(uid);
     if (!stats) throw new NotFoundException('Player not found');
-    return stats;
+    return { displayName: stats.displayName, joinLeaderboard: stats.joinLeaderboard };
   }
 
-  @Post('display-name')
+  @Post('profile')
   @UseGuards(JwtAuthGuard)
-  async updateDisplayName(
+  async updateProfile(
     @Req() req: any,
-    @Body() body: { displayName: string },
+    @Body() body: { displayName: string; joinLeaderboard: boolean },
   ) {
     const { uid } = req.user;
     const name = body.displayName?.trim();
     if (!name || name.length > 20) {
       throw new NotFoundException('Display name must be 1-20 characters');
     }
-    await this.playerService.updateDisplayName(uid, name);
-    return { ok: true, displayName: name };
+    await this.playerService.updateProfile(uid, { displayName: name, joinLeaderboard: body.joinLeaderboard });
+    return { ok: true, displayName: name, joinLeaderboard: body.joinLeaderboard };
+  }
+
+  @Get(':uid')
+  async getPlayerStats(@Param('uid') uid: string) {
+    const stats = await this.playerService.getPlayerStats(uid);
+    if (!stats) throw new NotFoundException('Player not found');
+    return stats;
   }
 
   @Post('game-result')

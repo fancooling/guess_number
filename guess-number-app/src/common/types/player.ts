@@ -9,6 +9,7 @@ export interface PlayerStats {
   stats: { [length: number]: LengthStats };
   totalWins: number;
   roomWins: number;
+  joinLeaderboard: boolean;
 }
 
 export interface LeaderboardEntry {
@@ -17,4 +18,10 @@ export interface LeaderboardEntry {
   totalWins: number;
   roomWins: number;
   stats: { [length: number]: LengthStats };
+  joinLeaderboard: boolean;
+}
+
+export interface PlayerProfile {
+  displayName: string;
+  joinLeaderboard: boolean;
 }

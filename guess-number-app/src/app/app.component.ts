@@ -34,8 +34,9 @@ export class AppComponent implements AfterViewChecked {
   // UI state
   showLeaderBoard = signal(false);
   selectedPlayer = signal<LeaderboardEntry | null>(null);
-  showNameEdit = signal(false);
+  showProfile = signal(false);
   nameInput = signal('');
+  joinLeaderboardInput = signal(true);
   private googleBtnInitialized = false;
 
   ngAfterViewChecked() {
@@ -97,27 +98,33 @@ export class AppComponent implements AfterViewChecked {
     this.selectedPlayer.set(null);
   }
 
-  // Display name methods
-  openNameEdit() {
+  // Profile methods
+  async openProfile() {
     this.nameInput.set(this.auth.displayName());
-    this.showNameEdit.set(true);
+    try {
+      const profile = await this.api.getProfile();
+      this.joinLeaderboardInput.set(profile.joinLeaderboard);
+    } catch {
+      this.joinLeaderboardInput.set(true);
+    }
+    this.showProfile.set(true);
   }
 
-  async saveDisplayName() {
+  async saveProfile() {
     const name = this.nameInput().trim();
     if (!name || name.length > 20) return;
     try {
-      const savedName = await this.api.updateDisplayName(name);
-      this.auth.updateDisplayName(savedName);
-      this.showNameEdit.set(false);
+      const saved = await this.api.updateProfile({ displayName: name, joinLeaderboard: this.joinLeaderboardInput() });
+      this.auth.updateDisplayName(saved.displayName);
+      this.showProfile.set(false);
       this.auth.dismissNamePrompt();
     } catch (e) {
-      console.error('Error updating display name:', e);
+      console.error('Error updating profile:', e);
     }
   }
 
-  cancelNameEdit() {
-    this.showNameEdit.set(false);
+  cancelProfile() {
+    this.showProfile.set(false);
     this.auth.dismissNamePrompt();
   }
 }

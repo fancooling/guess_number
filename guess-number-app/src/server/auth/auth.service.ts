@@ -27,25 +27,23 @@ export class AuthService {
     }
 
     const uid = payload.sub;
-    let displayName = payload.name || payload.email || 'Player';
 
     // Create/update player in Redis
     const playerKey = `player:${uid}`;
     const exists = await this.redis.exists(playerKey);
     const isNewPlayer = !exists;
+    let displayName: string;
     if (!exists) {
+      displayName = `Player_${nanoid(5)}`;
       await this.redis.hmset(playerKey, {
         displayName,
         totalWins: '0',
         roomWins: '0',
+        joinLeaderboard: 'true',
         stats: JSON.stringify({ 3: { wins: 0, totalGuesses: 0 }, 4: { wins: 0, totalGuesses: 0 }, 5: { wins: 0, totalGuesses: 0 } }),
       });
     } else {
-      // Use existing display name from Redis (player may have customized it)
-      const savedName = await this.redis.hget(playerKey, 'displayName');
-      if (savedName) {
-        displayName = savedName;
-      }
+      displayName = await this.redis.hget(playerKey, 'displayName') || `Player_${nanoid(5)}`;
     }
 
     const token = this.jwt.sign({ uid, displayName, isGuest: false });
