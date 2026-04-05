@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { AuthService } from '../auth/auth.service';
+import { PlayerService } from '../player/player.service';
 import { RoomService } from './room.service';
 import { RoomTimerService } from './room-timer.service';
 
@@ -30,12 +31,13 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private authService: AuthService,
+    private playerService: PlayerService,
     private roomService: RoomService,
     private timerService: RoomTimerService,
   ) {}
 
-  handleConnection(client: AuthenticatedSocket): void {
-    const token = client.handshake.auth?.token;
+  async handleConnection(client: AuthenticatedSocket): Promise<void> {
+    const token = client.handshake.auth?.['token'];
     if (!token) {
       client.disconnect();
       return;
@@ -45,6 +47,14 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!payload) {
       client.disconnect();
       return;
+    }
+
+    // Fetch current display name from Redis (JWT may have stale name)
+    if (!payload.isGuest) {
+      const stats = await this.playerService.getPlayerStats(payload.uid);
+      if (stats) {
+        payload.displayName = stats.displayName;
+      }
     }
 
     client.user = payload;
