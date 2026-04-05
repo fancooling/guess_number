@@ -36,7 +36,12 @@ guess_number/
 │   └── tsconfig.server.json   # NestJS TypeScript config
 ├── deploy/
 │   ├── docker-compose.yml     # 3 containers: app, redis, nginx
-│   └── deploy.sh              # Deployment script
+│   └── deploy.sh              # Deployment script (app-only by default, --all for full)
+├── scripts/
+│   ├── start_dev.sh           # Start local dev server
+│   ├── build_android.sh       # Build Android APK/AAB (--production for release)
+│   ├── redis_web.sh           # Launch Redis Commander web UI
+│   └── test.sh                # Run server-side tests
 ├── config/
 │   ├── nginx.conf             # Reverse proxy + WebSocket upgrade
 │   └── redis.conf             # AOF persistence enabled
@@ -123,6 +128,10 @@ npm install
 ### Run (frontend + backend concurrently)
 
 ```bash
+# From project root:
+./scripts/start_dev.sh
+
+# Or from guess-number-app/:
 npm run start:dev
 ```
 
@@ -211,7 +220,12 @@ Add to **Authorized redirect URIs**:
 
 ```bash
 cd ~/code/guess_number/deploy
+
+# Default: rebuild and restart app only (redis and nginx stay running)
 ./deploy.sh
+
+# Full deploy: rebuild all services (app, redis, nginx)
+./deploy.sh --all
 ```
 
 This builds and starts 3 Docker containers:
@@ -243,7 +257,8 @@ On your VPS:
 cd ~/code/guess_number
 git pull
 cd deploy
-./deploy.sh
+./deploy.sh            # Rebuilds app only (fast, keeps redis/nginx running)
+./deploy.sh --all      # Full redeploy if redis/nginx config changed
 ```
 
 ### Useful commands
@@ -276,6 +291,9 @@ docker compose exec redis redis-cli KEYS '*'
 | POST | `/api/auth/guest` | No | Guest sign-in |
 | GET | `/api/players/leaderboard` | No | Top 100 players |
 | GET | `/api/players/:uid` | No | Player stats |
+| GET | `/api/players/profile` | JWT | Get player profile |
+| POST | `/api/players/profile` | JWT | Update display name & leaderboard opt-in |
+| DELETE | `/api/players/account` | JWT | Delete account and all data |
 | POST | `/api/players/game-result` | JWT | Save solo game win |
 
 ### WebSocket Events (namespace: `/rooms`)
