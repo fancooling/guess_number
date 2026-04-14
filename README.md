@@ -5,16 +5,21 @@ A multiplayer number guessing game with Angular frontend, NestJS backend, Redis 
 ## Architecture
 
 ```
-nginx (reverse proxy, port 80/443)
+nginx (reverse proxy, managed in ~/code/vpsadmin, shared across VPS apps)
   ├── / → app:3000 (Angular static files via NestJS ServeStaticModule)
   ├── /api/* → app:3000 (NestJS REST endpoints)
   └── /socket.io/* → app:3000 (WebSocket for real-time rooms)
 
-app (NestJS + Angular, port 3000)
-  └── connects to redis:6379
+app (NestJS + Angular, port 3000, container name: guessnumber-app)
+  ├── joins shared `webnet` network (reachable by vpsadmin's nginx)
+  └── joins private default network (reachable by this stack's redis)
 
-redis (data persistence with AOF)
+redis (data persistence with AOF, private to this stack)
 ```
+
+Nginx lives in a separate compose stack (see `~/code/vpsadmin`). Both
+connect via the external Docker network `webnet`; redis stays on the
+project-local `default` network and is never exposed to other apps.
 
 ## Project Structure
 
@@ -35,7 +40,7 @@ guess_number/
 │   ├── tsconfig.json          # Angular TypeScript config
 │   └── tsconfig.server.json   # NestJS TypeScript config
 ├── deploy/
-│   ├── docker-compose.yml     # 3 containers: app, redis, nginx
+│   ├── docker-compose.yml     # 2 containers: app, redis (nginx is in ~/code/vpsadmin)
 │   └── deploy.sh              # Deployment script (app-only by default, --all for full)
 ├── scripts/
 │   ├── start_dev.sh           # Start local dev server
@@ -43,7 +48,6 @@ guess_number/
 │   ├── redis_web.sh           # Launch Redis Commander web UI
 │   └── test.sh                # Run server-side tests
 ├── config/
-│   ├── nginx.conf             # Reverse proxy + WebSocket upgrade
 │   └── redis.conf             # AOF persistence enabled
 ├── env/
 │   ├── .prod.env              # Production environment variables
@@ -216,26 +220,31 @@ Add to **Authorized JavaScript origins**:
 Add to **Authorized redirect URIs**:
 - `https://guessnumber.flamebots.org`
 
-### Step 6: Deploy
+### Step 6: Deploy vpsadmin (nginx) first
+
+The shared nginx stack lives in `~/code/vpsadmin`. Deploy it once per VPS
+(it creates the `webnet` Docker network this app attaches to). See the
+vpsadmin repo for details.
+
+### Step 7: Deploy this app
 
 ```bash
 cd ~/code/guess_number/deploy
 
-# Default: rebuild and restart app only (redis and nginx stay running)
+# Default: rebuild and restart app only (redis stays running)
 ./deploy.sh
 
-# Full deploy: rebuild all services (app, redis, nginx)
+# Full deploy: rebuild all services (app, redis)
 ./deploy.sh --all
 ```
 
-This builds and starts 3 Docker containers:
+This builds and starts 2 Docker containers:
 | Container | Image | Role |
 |-----------|-------|------|
-| **app** | Custom (Node.js) | NestJS backend + Angular static files |
-| **redis** | redis:7-alpine | Database with AOF persistence |
-| **nginx** | nginx:alpine | Reverse proxy (port 80) |
+| **app** (`guessnumber-app`) | Custom (Node.js) | NestJS backend + Angular static files; joins `webnet` so nginx can reach it |
+| **redis** | redis:7-alpine | Database with AOF persistence; stays on project-local network |
 
-### Step 7: Verify
+### Step 8: Verify
 
 ```bash
 # Check all containers are running
@@ -245,7 +254,7 @@ docker compose ps
 docker compose logs -f
 
 # Test the site
-curl http://guessnumber.flamebots.org
+curl https://guessnumber.flamebots.org
 ```
 
 Open `http://guessnumber.flamebots.org` in your browser.
@@ -257,8 +266,8 @@ On your VPS:
 cd ~/code/guess_number
 git pull
 cd deploy
-./deploy.sh            # Rebuilds app only (fast, keeps redis/nginx running)
-./deploy.sh --all      # Full redeploy if redis/nginx config changed
+./deploy.sh            # Rebuilds app only (fast, keeps redis running)
+./deploy.sh --all      # Full redeploy (app + redis) if redis config changed
 ```
 
 ### Useful commands

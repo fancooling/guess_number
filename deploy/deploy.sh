@@ -4,10 +4,6 @@ cd "$(dirname "$0")"
 
 echo "Deploying Guess Number Game..."
 
-# Auto-detect public IP for nginx port binding
-export HOST_IP=$(hostname -I | awk '{print $1}')
-echo "Binding to HOST_IP=$HOST_IP"
-
 # Check .prod.env
 if [ ! -f ../env/.prod.env ]; then
     echo "ERROR: ../env/.prod.env not found. Create it from .prod.env template."
@@ -25,7 +21,7 @@ if [ "$1" = "--all" ]; then
     docker compose build --no-cache
     docker compose up -d
 else
-    echo "Rebuilding app only (keeping redis and nginx running)..."
+    echo "Rebuilding app only (keeping redis running)..."
     docker compose build --no-cache app
     docker compose up -d --no-deps app
 fi
