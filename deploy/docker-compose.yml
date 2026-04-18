@@ -23,6 +23,17 @@ services:
       - ../config/redis.conf:/usr/local/etc/redis/redis.conf
     restart: unless-stopped
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: guessnumber-redisinsight
+    ports:
+      - "127.0.0.1:5540:5540"
+    volumes:
+      - redisinsight-data:/data
+    depends_on:
+      - redis
+    restart: unless-stopped
+
 networks:
   webnet:
     name: webnet
@@ -30,3 +41,4 @@ networks:
 
 volumes:
   redis-data:
+  redisinsight-data:

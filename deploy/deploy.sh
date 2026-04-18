@@ -16,17 +16,19 @@ source ../env/.prod.env
 set +a
 
 if [ "$1" = "--all" ]; then
-    echo "Rebuilding all services..."
+    echo "Rebuilding all services (app, redis, redisinsight)..."
     docker compose down
     docker compose build --no-cache
     docker compose up -d
 else
-    echo "Rebuilding app only (keeping redis running)..."
+    echo "Rebuilding app only (keeping redis & redisinsight running)..."
     docker compose build --no-cache app
     docker compose up -d --no-deps app
 fi
 
 echo ""
 echo "Deployment complete!"
-echo "  App:   https://guessnumber.flamebots.org"
-echo "  Logs:  docker compose logs -f"
+echo "  App:          https://guessnumber.flamebots.org"
+echo "  Logs:         docker compose logs -f"
+echo "  RedisInsight: http://127.0.0.1:5540 on the VPS"
+echo "                (from local: ssh -L 5540:localhost:5540 <vps-user>@<vps-host>)"

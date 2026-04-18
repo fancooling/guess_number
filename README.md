@@ -15,6 +15,9 @@ app (NestJS + Angular, port 3000, container name: guessnumber-app)
   └── joins private default network (reachable by this stack's redis)
 
 redis (data persistence with AOF, private to this stack)
+
+redisinsight (web UI for redis, bound to 127.0.0.1:5540 — VPS-local only,
+              accessed from your laptop via SSH tunnel)
 ```
 
 Nginx lives in a separate compose stack (see `~/code/vpsadmin`). Both
@@ -40,7 +43,7 @@ guess_number/
 │   ├── tsconfig.json          # Angular TypeScript config
 │   └── tsconfig.server.json   # NestJS TypeScript config
 ├── deploy/
-│   ├── docker-compose.yml     # 2 containers: app, redis (nginx is in ~/code/vpsadmin)
+│   ├── docker-compose.yml     # 3 containers: app, redis, redisinsight (nginx is in ~/code/vpsadmin)
 │   └── deploy.sh              # Deployment script (app-only by default, --all for full)
 ├── scripts/
 │   ├── start_dev.sh           # Start local dev server
@@ -238,11 +241,12 @@ cd ~/code/guess_number/deploy
 ./deploy.sh --all
 ```
 
-This builds and starts 2 Docker containers:
+This builds and starts 3 Docker containers:
 | Container | Image | Role |
 |-----------|-------|------|
 | **app** (`guessnumber-app`) | Custom (Node.js) | NestJS backend + Angular static files; joins `webnet` so nginx can reach it |
 | **redis** | redis:7-alpine | Database with AOF persistence; stays on project-local network |
+| **redisinsight** (`guessnumber-redisinsight`) | redis/redisinsight | Web UI for redis; bound to `127.0.0.1:5540` (VPS-local only — view via SSH tunnel) |
 
 ### Step 8: Verify
 
@@ -290,6 +294,46 @@ docker compose down -v
 # Check Redis data
 docker compose exec redis redis-cli KEYS '*'
 ```
+
+### Browse Redis from your laptop (SSH tunnel to RedisInsight)
+
+The `redisinsight` container runs alongside `redis` and exposes its web UI
+on the VPS at `127.0.0.1:5540`. The bind to loopback means it is **not**
+reachable from the public internet — you reach it from your laptop over an
+SSH tunnel.
+
+1. **Open the tunnel from your laptop** (leave the terminal running while
+   you're using the UI):
+
+   ```bash
+   ssh -N -L 5540:127.0.0.1:5540 <vps-user>@<vps-host>
+   ```
+
+   - `-N` = don't run a remote shell, just forward the port.
+   - `-L 5540:127.0.0.1:5540` = forward local port 5540 to the VPS's
+     loopback port 5540 (where RedisInsight listens).
+   - If your local 5540 is busy, use any free local port:
+     `-L 9540:127.0.0.1:5540`, then visit `http://localhost:9540`.
+
+2. **Open RedisInsight in your browser**: <http://localhost:5540>
+
+3. **Add the database** (first time only). In the RedisInsight UI click
+   *Add Redis Database* -> *Add Database Manually* and enter:
+
+   | Field | Value |
+   |-------|-------|
+   | Host | `redis` |
+   | Port | `6379` |
+   | Database Alias | `guessnumber` (anything) |
+   | Username / Password | leave blank |
+
+   The host is `redis` (not `localhost`) because RedisInsight connects
+   from inside the Docker network, where the redis container is reachable
+   by its service name.
+
+4. **Done** — browse keys, run commands in the workbench, inspect AOF
+   stats, etc. To close the tunnel, `Ctrl+C` the SSH session on your
+   laptop. The container keeps running on the VPS for next time.
 
 ## API Reference
 
